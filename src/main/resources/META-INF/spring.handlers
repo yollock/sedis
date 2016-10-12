@@ -1,0 +1,1 @@
+http\://yollock.com/schema/sedis=com.sedis.cache.spring.config.SedisNamespaceHandler

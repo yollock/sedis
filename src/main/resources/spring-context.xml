@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:sedis="http://yollock.com/schema/sedis"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+            http://www.springframework.org/schema/beans/spring-beans.xsd
+            http://yollock.com/schema/sedis
+            http://yollock.com/schema/sedis/sedis.xsd
+            http://www.springframework.org/schema/tx
+            http://www.springframework.org/schema/tx/spring-tx.xsd
+            http://www.springframework.org/schema/aop
+            http://www.springframework.org/schema/aop/spring-aop.xsd">
+
+
+    <sedis:annotation-driven memory-count="1000000" sedis-client="sedisClient"/>
+
+    <bean id="jedisPoolConfig" class="redis.clients.jedis.JedisPoolConfig">
+        <property name="maxIdle" value="10"/>
+        <property name="testOnBorrow" value="true"/>
+    </bean>
+
+    <bean id="sedisClient" class="redis.clients.jedis.ShardedJedisPool">
+        <constructor-arg ref="jedisPoolConfig"/>
+        <constructor-arg>
+            <list>
+                <bean class="redis.clients.jedis.JedisShardInfo">
+                    <constructor-arg value="127.0.0.1"/>
+                    <constructor-arg type="int" value="6379"/>
+                    <constructor-arg value="123456"/>
+                </bean>
+                <!--<bean class="redis.clients.jedis.JedisShardInfo">-->
+                    <!--<constructor-arg value="127.0.0.1"/>-->
+                    <!--<constructor-arg type="int" value="6378"/>-->
+                    <!--<constructor-arg value="123456"/>-->
+                <!--</bean>-->
+                <!--<bean class="redis.clients.jedis.JedisShardInfo">-->
+                    <!--<constructor-arg value="127.0.0.1"/>-->
+                    <!--<constructor-arg type="int" value="6377"/>-->
+                    <!--<constructor-arg value="123456"/>-->
+                <!--</bean>-->
+            </list>
+        </constructor-arg>
+    </bean>
+
+    <bean id="waybillService" class="com.sedis.test.WaybillServiceImpl"></bean>
+
+    <aop:aspectj-autoproxy/>
+
+    <tx:annotation-driven/>
+
+</beans>

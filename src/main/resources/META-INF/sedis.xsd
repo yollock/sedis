@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns="http://yollock.com/schema/sedis"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            xmlns:beans="http://www.springframework.org/schema/beans"
+            xmlns:tool="http://www.springframework.org/schema/tool"
+            targetNamespace="http://yollock.com/schema/sedis" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xsi:schemaLocation="http://www.springframework.org/schema/tool http://www.springframework.org/schema/tool/spring-tool.xsd">
+
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace"/>
+    <xsd:import namespace="http://www.springframework.org/schema/beans"/>
+    <xsd:import namespace="http://www.springframework.org/schema/tool"/>
+
+    <xsd:annotation>
+        <xsd:documentation><![CDATA[ .. ]]></xsd:documentation>
+    </xsd:annotation>
+
+    <xsd:element name="annotation-driven">
+        <xsd:complexType>
+            <xsd:attribute name="sedis-client" type="xsd:string" default="">
+                <xsd:annotation>
+                    <xsd:documentation source="java:redis.clients.jedis.ShardedJedisPool">
+                        <![CDATA[ ]]></xsd:documentation>
+                    <xsd:appinfo>
+                        <tool:annotation kind="ref">
+                            <tool:expected-type type="redis.clients.jedis.ShardedJedisPool"/>
+                        </tool:annotation>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:attribute>
+            <xsd:attribute name="proxy-target-class" type="xsd:boolean" default="false">
+                <xsd:annotation>
+                    <xsd:documentation><![CDATA[]]></xsd:documentation>
+                </xsd:annotation>
+            </xsd:attribute>
+            <xsd:attribute name="memory-count" type="xsd:int" default="100000">
+            </xsd:attribute>
+            <xsd:attribute name="order" type="xsd:int">
+                <xsd:annotation>
+                    <xsd:documentation source="java:org.springframework.core.Ordered"><![CDATA[]]></xsd:documentation>
+                </xsd:annotation>
+            </xsd:attribute>
+        </xsd:complexType>
+    </xsd:element>
+
+</xsd:schema>
