@@ -24,7 +24,6 @@ public class CacheDto<V> implements java.io.Serializable {
     // 命中次数,同一个JVM保证了原子性,但分布式环境没有保证,考虑到分布式锁的性能问题,这只是一个概数统计
     private AtomicLong ht = new AtomicLong(0L);
     // 访问次数,同一个JVM保证了原子性,但分布式环境没有保证,考虑到分布式锁的性能问题,这只是一个概数统计
-//    private AtomicLong vt = new AtomicLong(0L);
 
     public CacheDto() {
         super();
@@ -70,11 +69,4 @@ public class CacheDto<V> implements java.io.Serializable {
         this.ht = ht;
     }
 
-//    public AtomicLong getVt() {
-//        return vt;
-//    }
-//
-//    public void setVt(AtomicLong vt) {
-//        this.vt = vt;
-//    }
 }

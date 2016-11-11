@@ -5,6 +5,4 @@ package com.sedis.cache.domain;
  */
 public class MemoryCacheDto<V> extends CacheDto<V> {
 
-
-
 }
