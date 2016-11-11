@@ -2,7 +2,6 @@ package com.sedis.test;
 
 import com.sedis.cache.annotation.Cache;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;

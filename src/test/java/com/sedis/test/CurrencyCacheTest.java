@@ -16,7 +16,7 @@ public class CurrencyCacheTest {
         String configPath = "classpath:spring-context.xml";
         ApplicationContext context = new ClassPathXmlApplicationContext(configPath);
         final WaybillService service = (WaybillService) context.getBean("waybillService");
-        oneKey(service);
+        randomKey(service);
     }
 
     private static void oneKey(final WaybillService service) {
