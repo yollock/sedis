@@ -14,7 +14,7 @@ public class SedisNamespaceHandlerTest {
 
     public static void main(String[] args) {
         DefaultResourceLoader loader = new DefaultResourceLoader();
-        Resource resource = loader.getResource("spring-context.xml");
+        Resource resource = loader.getResource("src/test/resources/spring-context.xml");
         BeanDefinitionRegistry registry = new SimpleBeanDefinitionRegistry();
         BeanDefinitionReader reader = new XmlBeanDefinitionReader(registry);
 
