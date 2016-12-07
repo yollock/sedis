@@ -1,10 +1,10 @@
-package com.sedis.common.util;
+package com.sedis.util.locks;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * Created by Administrator on 2016/11/14.
+ * Created by yollock on 2016/11/14.
  * 实现失效特性.
  */
 public class ExpireLock extends ReentrantLock {

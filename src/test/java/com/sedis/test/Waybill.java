@@ -1,7 +1,7 @@
 package com.sedis.test;
 
 /**
- * Created by yangbo12 on 2016/9/26.
+ * Created by yollock on 2016/9/26.
  */
 public class Waybill {
 

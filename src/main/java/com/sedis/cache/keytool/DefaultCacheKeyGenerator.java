@@ -31,7 +31,7 @@ public class DefaultCacheKeyGenerator implements CacheKeyGenerator {
             try {
                 implMethod = target.getClass().getMethod(interfaceMethod.getName(), interfaceMethod.getParameterTypes());
             } catch (NoSuchMethodException e) {
-                logger.error(MessageFormat.format("DefaultCacheKeyGeneratorError, interfaceMethod is ", interfaceMethod == null ? "null" : interfaceMethod.getName()), e);
+                logger.error("DefaultCacheKeyGeneratorError, interfaceMethod is " + interfaceMethod == null ? "null" : interfaceMethod.getName(), e);
             }
         }
         Method methodForKey = (implMethod != null ? implMethod : interfaceMethod);

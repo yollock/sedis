@@ -16,11 +16,11 @@ public class CacheDto<V> implements java.io.Serializable {
     // 缓存数据的key
     private String key;
     // 缓存的值
-    private V val;
+    private V      val;
     // 缓存第一次生成的时间,也是生效时间
-    private long st = System.currentTimeMillis();
+    private long       st = System.currentTimeMillis();
     // 失效时间,注解中的参数决定
-    private long et = 0;
+    private long       et = 0;
     // 命中次数,同一个JVM保证了原子性,但分布式环境没有保证,考虑到分布式锁的性能问题,这只是一个概数统计
     private AtomicLong ht = new AtomicLong(0L);
     // 访问次数,同一个JVM保证了原子性,但分布式环境没有保证,考虑到分布式锁的性能问题,这只是一个概数统计

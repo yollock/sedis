@@ -1,6 +1,5 @@
 package com.sedis.cache.spring.config;
 
-import com.sedis.cache.pipeline.MemoryCacheHandler;
 import com.sedis.cache.spring.AnnotationCacheAttributeSource;
 import com.sedis.cache.spring.BeanFactoryCacheAttributeSourceAdvisor;
 import com.sedis.cache.spring.CacheInterceptor;

@@ -1,6 +1,6 @@
 package com.sedis.cache.pipeline;
 
-import com.sedis.common.util.JsonUtils;
+import com.sedis.util.JsonUtils;
 import org.aopalliance.intercept.MethodInvocation;
 import org.apache.log4j.Logger;
 
@@ -37,7 +37,7 @@ public class DataSourceHandler extends AbstractCacheHandler {
         try {
             return (V) invocation.proceed();
         } catch (Throwable t) {
-            logger.error(MessageFormat.format("DataSourceHandlerError, the context is {0}", JsonUtils.beanToJson(context)), t);
+            logger.error("DataSourceHandlerError, the context is {0}" + JsonUtils.beanToJson(context), t);
         } finally {
             // if datasource level, unlock only once
             // if datsource and redis, unlock once here, redis_reverse unlock twice

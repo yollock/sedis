@@ -7,7 +7,7 @@ import org.springframework.core.annotation.AnnotationUtils;
 import java.lang.reflect.AnnotatedElement;
 
 /**
- * Created by yangbo12 on 2016/9/12.
+ * Created by yollock on 2016/9/12.
  */
 public class SpringCacheAnnotationParser implements CacheAnnotationParser {
 
@@ -26,7 +26,8 @@ public class SpringCacheAnnotationParser implements CacheAnnotationParser {
                 cache.memoryExpiredTime(),//
                 cache.redisEnable(),//
                 cache.redisExpiredTime(), //
-                cache.dataSourceEnable());
+                cache.dataSourceEnable() //
+        );
     }
 
 }

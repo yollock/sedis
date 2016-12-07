@@ -1,7 +1,7 @@
 package com.sedis.cache.pipeline;
 
 /**
- * Created by yangbo12 on 2016/9/13.
+ * Created by yollock on 2016/9/13.
  */
 public interface CachePipeline {
 

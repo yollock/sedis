@@ -1,7 +1,7 @@
 package com.sedis.cache.pipeline;
 
 import com.sedis.cache.domain.RedisCacheDto;
-import com.sedis.common.util.JsonUtils;
+import com.sedis.util.JsonUtils;
 import org.apache.log4j.Logger;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.type.JavaType;
@@ -97,7 +97,7 @@ public class RedisCacheHandler extends AbstractCacheHandler {
                 jedis.set(key, JsonUtils.beanToJson(rcd));
             }
         } catch (Throwable t) {
-            logger.error(MessageFormat.format("RedisCacheHandlerError, the context is {0}", JsonUtils.beanToJson(context)), t);
+            logger.error("RedisCacheHandlerError, the context is {0}" + JsonUtils.beanToJson(context), t);
         } finally {
             for (int i = 0, lockCount = lock.getHoldCount(); i < lockCount; i++) {
                 lock.unlock();

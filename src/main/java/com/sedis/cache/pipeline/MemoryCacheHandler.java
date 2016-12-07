@@ -1,13 +1,7 @@
 package com.sedis.cache.pipeline;
 
 import com.sedis.cache.domain.MemoryCacheDto;
-import com.sedis.cache.spring.CacheAttribute;
-import com.sedis.common.util.SingleLruCache;
-import org.aopalliance.intercept.MethodInvocation;
-
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.locks.ReentrantLock;
+import com.sedis.util.SingleLruCache;
 
 
 public class MemoryCacheHandler extends AbstractCacheHandler {

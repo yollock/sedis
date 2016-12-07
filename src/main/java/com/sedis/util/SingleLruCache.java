@@ -1,4 +1,4 @@
-package com.sedis.common.util;
+package com.sedis.util;
 
 import java.util.LinkedHashMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;

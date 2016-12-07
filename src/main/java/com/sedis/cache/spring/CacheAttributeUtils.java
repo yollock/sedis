@@ -6,7 +6,7 @@ import com.sedis.cache.pipeline.CacheHandlerContext;
 import org.aopalliance.intercept.MethodInvocation;
 
 /**
- * Created by yangbo12 on 2016/9/13.
+ * Created by yollock on 2016/9/13.
  */
 public class CacheAttributeUtils {
 

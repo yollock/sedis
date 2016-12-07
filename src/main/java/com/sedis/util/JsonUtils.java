@@ -1,4 +1,4 @@
-package com.sedis.common.util;
+package com.sedis.util;
 
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.DeserializationConfig;

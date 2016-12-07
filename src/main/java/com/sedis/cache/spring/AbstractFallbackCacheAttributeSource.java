@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Created by yangbo12 on 2016/9/12.
+ * Created by yollock on 2016/9/12.
  */
 public abstract class AbstractFallbackCacheAttributeSource implements CacheAttributeSource {
 
