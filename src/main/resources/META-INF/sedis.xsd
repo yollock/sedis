@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsd:schema xmlns="http://yollock.com/schema/sedis"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-            xmlns:beans="http://www.springframework.org/schema/beans"
             xmlns:tool="http://www.springframework.org/schema/tool"
-            targetNamespace="http://yollock.com/schema/sedis" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-            xsi:schemaLocation="http://www.springframework.org/schema/tool http://www.springframework.org/schema/tool/spring-tool.xsd">
+            targetNamespace="http://yollock.com/schema/sedis"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xsi:schemaLocation="http://www.springframework.org/schema/tool
+            http://www.springframework.org/schema/tool/spring-tool.xsd">
 
     <xsd:import namespace="http://www.w3.org/XML/1998/namespace"/>
     <xsd:import namespace="http://www.springframework.org/schema/beans"/>
@@ -19,7 +20,7 @@
             <xsd:attribute name="sedis-client" type="xsd:string" default="">
                 <xsd:annotation>
                     <xsd:documentation source="java:redis.clients.jedis.ShardedJedisPool">
-                        <![CDATA[ ]]></xsd:documentation>
+                        <![CDATA[ redis客户端实现类 ]]></xsd:documentation>
                     <xsd:appinfo>
                         <tool:annotation kind="ref">
                             <tool:expected-type type="redis.clients.jedis.ShardedJedisPool"/>
@@ -29,10 +30,28 @@
             </xsd:attribute>
             <xsd:attribute name="proxy-target-class" type="xsd:boolean" default="false">
                 <xsd:annotation>
-                    <xsd:documentation><![CDATA[]]></xsd:documentation>
+                    <xsd:documentation><![CDATA[ false表示使用JDK动态代理,true表示使用CGLIB动态代理 ]]></xsd:documentation>
                 </xsd:annotation>
             </xsd:attribute>
             <xsd:attribute name="memory-count" type="xsd:int" default="100000">
+                <xsd:annotation>
+                    <xsd:documentation><![CDATA[ 内存缓存最大容量 ]]></xsd:documentation>
+                </xsd:annotation>
+            </xsd:attribute>
+            <xsd:attribute name="lock-count" type="xsd:int" default="10000">
+                <xsd:annotation>
+                    <xsd:documentation><![CDATA[ 缓存处理器的加锁数量,不清楚就使用默认值10000 ]]></xsd:documentation>
+                </xsd:annotation>
+            </xsd:attribute>
+            <xsd:attribute name="max-period" type="xsd:long" default="3600000">
+                <xsd:annotation>
+                    <xsd:documentation><![CDATA[ 缓存处理器的锁的生存周期长度,默认1小时,单位毫秒 ]]></xsd:documentation>
+                </xsd:annotation>
+            </xsd:attribute>
+            <xsd:attribute name="delay" type="xsd:long" default="3600000">
+                <xsd:annotation>
+                    <xsd:documentation><![CDATA[ 执行缓存处理器中的锁的清理任务的执行间隔,默认1小时,单位毫秒 ]]></xsd:documentation>
+                </xsd:annotation>
             </xsd:attribute>
             <xsd:attribute name="order" type="xsd:int">
                 <xsd:annotation>

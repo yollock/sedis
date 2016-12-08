@@ -46,6 +46,15 @@ public class AnnotationDrivenSedisBeanDefinitionParser implements BeanDefinition
                 if (element.hasAttribute("memory-count")) {
                     interceptorDef.getPropertyValues().add("memoryCount", element.getAttribute("memory-count"));
                 }
+                if (element.hasAttribute("lock-count")) {
+                    interceptorDef.getPropertyValues().add("lockCount", element.getAttribute("lock-count"));
+                }
+                if (element.hasAttribute("max-period")) {
+                    interceptorDef.getPropertyValues().add("maxPeriod", element.getAttribute("max-period"));
+                }
+                if (element.hasAttribute("delay")) {
+                    interceptorDef.getPropertyValues().add("delay", element.getAttribute("delay"));
+                }
                 String interceptorName = parserContext.getReaderContext().registerWithGeneratedName(interceptorDef);
 
                 RootBeanDefinition advisorDef = new RootBeanDefinition(BeanFactoryCacheAttributeSourceAdvisor.class);

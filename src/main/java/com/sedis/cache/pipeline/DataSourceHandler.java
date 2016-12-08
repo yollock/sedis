@@ -30,14 +30,15 @@ public class DataSourceHandler extends AbstractCacheHandler {
     @Override
     public <V> V forwardHandle(CacheHandlerContext context) {
         if (invocation == null) {
+            logger.warn("目标方法为null,获取原始数据失败");
             return null;
         }
         final ReentrantLock lock = context.getLock() == null ? RedisCacheHandler.getLock(context.getKey()) : context.getLock();
-        lock.lock();
         try {
+            lock.lock();
             return (V) invocation.proceed();
         } catch (Throwable t) {
-            logger.error("DataSourceHandlerError, the context is {0}" + JsonUtils.beanToJson(context), t);
+            logger.error("DataSourceHandlerError, the context is " + JsonUtils.beanToJson(context), t);
         } finally {
             // if datasource level, unlock only once
             // if datsource and redis, unlock once here, redis_reverse unlock twice

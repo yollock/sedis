@@ -32,6 +32,7 @@ public class RedisCacheHandler extends AbstractCacheHandler {
             return null;
         }
         if (sedisClient == null) {
+            logger.warn("Redis访问层有效,但redis客户端对象为null,将从下一层获取数据");
             return null;
         }
         final String key = context.getKey();
@@ -42,6 +43,7 @@ public class RedisCacheHandler extends AbstractCacheHandler {
             context.setLock(lock); // restore for reverseHandle
             jedis = sedisClient.getResource();
             if (jedis == null) {
+                logger.warn("从redis客户端获取的连接为null,将从下一层获取数据");
                 return null;
             }
             String val = jedis.get(key);
@@ -51,11 +53,13 @@ public class RedisCacheHandler extends AbstractCacheHandler {
             } else {
                 RedisCacheDto rcd = this.getFromRedisAndConvert(jedis, key);
                 if (rcd == null) {
+                    logger.warn("从redis获取的数据,反序列化失败,将从下一层获取数据, key = " + key);
                     context.setRedisMissed(true);
                     return null;
                 }
                 if (System.currentTimeMillis() >= rcd.getEt()) {
                     context.setRedisMissed(true);
+                    logger.info("从redis获取的数据,已经失效,抛弃,从下一层获取数据, key = " + key);
                     return null;
                 }
                 rcd.getHt().incrementAndGet();
@@ -63,10 +67,13 @@ public class RedisCacheHandler extends AbstractCacheHandler {
                 return (V) rcd.getVal();
             }
         } catch (Throwable t) {
-            logger.error(MessageFormat.format("RedisCacheHandlerError, the context is {0}", JsonUtils.beanToJson(context)), t);
+            logger.error("RedisCacheHandlerError, the context is " + JsonUtils.beanToJson(context), t);
         } finally {
             //lock.unlock();
-            sedisClient.returnResource(jedis);
+            try {
+                sedisClient.returnResource(jedis);
+            } catch (Throwable t) {
+            }
         }
         return null;
     }
@@ -77,6 +84,7 @@ public class RedisCacheHandler extends AbstractCacheHandler {
             return;
         }
         if (sedisClient == null) {
+            logger.warn("Redis访问层有效,但redis客户端对象为null,逆向操作缓存数据失败");
             return;
         }
         final String key = context.getKey();
@@ -86,6 +94,7 @@ public class RedisCacheHandler extends AbstractCacheHandler {
             lock.lock();
             jedis = sedisClient.getResource();
             if (jedis == null) {
+                logger.warn("从redis客户端获取的连接为null,逆向操作缓存数据失败");
                 return;
             }
             if (context.getRedisMissed() && context.getResult() != null) {
@@ -97,12 +106,15 @@ public class RedisCacheHandler extends AbstractCacheHandler {
                 jedis.set(key, JsonUtils.beanToJson(rcd));
             }
         } catch (Throwable t) {
-            logger.error("RedisCacheHandlerError, the context is {0}" + JsonUtils.beanToJson(context), t);
+            logger.error("RedisCacheHandlerError, the context is " + JsonUtils.beanToJson(context), t);
         } finally {
             for (int i = 0, lockCount = lock.getHoldCount(); i < lockCount; i++) {
                 lock.unlock();
             }
-            sedisClient.returnResource(jedis);
+            try {
+                sedisClient.returnResource(jedis);
+            } catch (Throwable t) {
+            }
         }
     }
 
@@ -133,7 +145,7 @@ public class RedisCacheHandler extends AbstractCacheHandler {
             }
         } catch (Throwable t) {
             redisCacheDto = null;
-            logger.error(MessageFormat.format("RedisCacheHandlerConvertError, the key is {0}", key), t);
+            logger.error("RedisCacheHandlerConvertError, the key is " + key, t);
         }
         return redisCacheDto;
     }
