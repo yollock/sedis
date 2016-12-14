@@ -3,6 +3,7 @@ package com.sedis.cache.pipeline;
 import com.sedis.cache.spring.CacheAttribute;
 import org.aopalliance.intercept.MethodInvocation;
 
+import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -18,14 +19,9 @@ public class CacheHandlerContext {
     private CacheAttribute cacheAttribute;
     private MethodInvocation invocation;
     private String key;
-    // 当当前handler有效,但是没有命中时,表示是否要创建新的dto
-    // 第一次,需要标记true,然后在back中创建,存储;
-    // 第二次访问有值,标记为false,在back中不会创建,直接set覆盖
-    private boolean redisMissed = false;
-    private boolean memoryMissed = false;
-    private Object result;
     private int handlerFlag;
-    private ReentrantLock lock;
+
+    private List<CacheHandler> handlers;
 
     public CacheHandlerContext() {
     }
@@ -37,36 +33,8 @@ public class CacheHandlerContext {
         this.handlerFlag = handlerFlag;
     }
 
-    public ReentrantLock getLock() {
-        return lock;
-    }
-
-    public void setLock(ReentrantLock lock) {
-        this.lock = lock;
-    }
-
-    public int getHandlerFlag() {
-        return handlerFlag;
-    }
-
-    public void setHandlerFlag(int handlerFlag) {
-        this.handlerFlag = handlerFlag;
-    }
-
-    public Object getResult() {
-        return result;
-    }
-
-    public void setResult(Object result) {
-        this.result = result;
-    }
-
-    public String getKey() {
-        return key;
-    }
-
-    public void setKey(String key) {
-        this.key = key;
+    public List<CacheHandler> getHandlers() {
+        return handlers;
     }
 
     public CacheAttribute getCacheAttribute() {
@@ -85,33 +53,23 @@ public class CacheHandlerContext {
         this.invocation = invocation;
     }
 
-    public boolean getRedisMissed() {
-        return redisMissed;
+    public String getKey() {
+        return key;
     }
 
-    public void setRedisMissed(boolean redisMissed) {
-        this.redisMissed = redisMissed;
+    public void setKey(String key) {
+        this.key = key;
     }
 
-    public boolean getMemoryMissed() {
-        return memoryMissed;
+    public int getHandlerFlag() {
+        return handlerFlag;
     }
 
-    public void setMemoryMissed(boolean memoryMissed) {
-        this.memoryMissed = memoryMissed;
+    public void setHandlerFlag(int handlerFlag) {
+        this.handlerFlag = handlerFlag;
     }
 
-    @Override
-    public String toString() {
-        return "CacheHandlerContext{" +
-                "lock=" + lock +
-                ", cacheAttribute=" + cacheAttribute +
-                ", invocation=" + invocation +
-                ", key='" + key + '\'' +
-                ", redisMissed=" + redisMissed +
-                ", memoryMissed=" + memoryMissed +
-                ", result=" + result +
-                ", handlerFlag=" + handlerFlag +
-                '}';
+    public void setHandlers(List<CacheHandler> handlers) {
+        this.handlers = handlers;
     }
 }

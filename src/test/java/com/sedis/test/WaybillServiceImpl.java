@@ -20,7 +20,7 @@ public class WaybillServiceImpl implements WaybillService {
     }
 
     @Override
-    @Cache(redisEnable = true, key = "waybillList@args0")
+    @Cache(redisEnable = true, memoryEnable = false, key = "waybillList@args0")
     public List<Waybill> findListById(String code) {
         //LockSupport.parkNanos(this, 1000000000L);
         List waybills = new ArrayList();

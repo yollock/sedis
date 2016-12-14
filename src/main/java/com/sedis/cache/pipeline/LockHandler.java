@@ -1,52 +1,70 @@
 package com.sedis.cache.pipeline;
 
+import com.sedis.cache.spring.CacheInterceptor;
 import com.sedis.util.locks.ExpireLock;
 import org.apache.log4j.Logger;
 
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.*;
+import java.util.concurrent.locks.Lock;
 
 /**
- * Created by yollock on 2016/9/13.
+ * Created by yollock on 2016/12/14.
  */
-public abstract class AbstractCacheHandler implements CacheHandler {
+public class LockHandler implements CacheHandler {
 
-    private static Logger logger = Logger.getLogger(AbstractCacheHandler.class);
+    private static Logger logger = Logger.getLogger(LockHandler.class);
+
+    private static final int NEXT = 1;
 
     public static final int MIN_COUNT = 10000;
 
     public static final long MIN_PERIOD = 5L * 60L * 1000L;
 
     // 减小锁的粒度,同时,对每个key加锁,减少并发量,避免热点key
-    private static final ConcurrentHashMap<String, ExpireLock> locks = new ConcurrentHashMap<String, ExpireLock>();
+    protected final ConcurrentHashMap<String, ExpireLock> locks = new ConcurrentHashMap<String, ExpireLock>();
 
-    public static ExpireLock getLock(String key) {
+    public ExpireLock getLock(String key) {
         ExpireLock lock = locks.get(key);
         if (lock == null) {
-            ExpireLock newLock = new ExpireLock();
-            ExpireLock oldLock = locks.putIfAbsent(key, newLock);
-            if (oldLock == null) {
-                return newLock;
-            } else {
-                return oldLock;
-            }
-        } else {
-            return lock;
+            locks.putIfAbsent(key, new ExpireLock());
+            lock = locks.get(key);
         }
+        return lock;
     }
 
+
+    public LockHandler(CacheInterceptor interceptor) {
+        servicer.schedule(new ScavengeWorker(interceptor.getLockCount(), interceptor.getMaxPeriod()), //
+                interceptor.getDelay(), //
+                TimeUnit.MILLISECONDS //
+        );
+    }
+
+
+    public <V> V handle(CacheHandlerContext context) {
+        final Lock lock = getLock(context.getKey());
+        try {
+            lock.lock();
+            return context.getHandlers().get(NEXT).handle(context);
+        } catch (Throwable t) {
+            logger.warn("LockHandler error", t);
+        } finally {
+            lock.unlock();
+        }
+        return null;
+    }
+
+
     // 清道夫
-    public static ScheduledExecutorService servicer = new ScheduledThreadPoolExecutor(1, new ThreadFactory() {
+    private final ScheduledExecutorService servicer = new ScheduledThreadPoolExecutor(1, new ThreadFactory() {
         @Override
         public Thread newThread(Runnable runnable) {
-            return new Thread("SedisLockScavenger");
+            return new Thread("SedisLockScavenger_" + Thread.currentThread().getName());
         }
     });
 
-    public static class ScavengeWorker implements Runnable {
+    private class ScavengeWorker implements Runnable {
         private int lockCount;
         private long maxPeriod;
 
@@ -65,7 +83,7 @@ public abstract class AbstractCacheHandler implements CacheHandler {
 
     }
 
-    private static void clearExpiredLock(int lockCount, long maxPeriod) {
+    private void clearExpiredLock(int lockCount, long maxPeriod) {
         int count = lockCount;
         long period = maxPeriod;
         if (lockCount < MIN_COUNT) {
@@ -83,7 +101,7 @@ public abstract class AbstractCacheHandler implements CacheHandler {
             final String key = entry.getKey();
             final ExpireLock lock = entry.getValue();
             if (lock.isExpired(period)) {
-                locks.remove(entry.getKey());
+                locks.remove(key);
                 size--;
             }
         }

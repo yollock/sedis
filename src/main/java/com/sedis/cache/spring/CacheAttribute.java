@@ -83,4 +83,20 @@ public class CacheAttribute {
         this.dataSourceEnable = dataSourceEnable;
         return this;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        CacheAttribute that = (CacheAttribute) o;
+
+        return key.equals(that.key);
+
+    }
+
+    @Override
+    public int hashCode() {
+        return key.hashCode();
+    }
 }

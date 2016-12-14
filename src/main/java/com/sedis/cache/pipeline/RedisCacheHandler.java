@@ -1,6 +1,8 @@
 package com.sedis.cache.pipeline;
 
+import com.sedis.cache.domain.MemoryCacheDto;
 import com.sedis.cache.domain.RedisCacheDto;
+import com.sedis.cache.spring.CacheInterceptor;
 import com.sedis.util.JsonUtils;
 import org.apache.log4j.Logger;
 import org.codehaus.jackson.map.type.TypeFactory;
@@ -11,9 +13,11 @@ import redis.clients.jedis.ShardedJedisPool;
 import java.text.MessageFormat;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class RedisCacheHandler extends AbstractCacheHandler {
+public class RedisCacheHandler implements CacheHandler {
 
-    private static Logger logger = Logger.getLogger(AbstractCacheHandler.class);
+    private static Logger logger = Logger.getLogger(RedisCacheHandler.class);
+
+    private static final int NEXT = 3;
 
     private ShardedJedisPool sedisClient;
 
@@ -21,101 +25,55 @@ public class RedisCacheHandler extends AbstractCacheHandler {
         super();
     }
 
-    public RedisCacheHandler(ShardedJedisPool sedisClient) {
+    public RedisCacheHandler(CacheInterceptor interceptor) {
         super();
-        this.sedisClient = sedisClient;
+        this.sedisClient = interceptor.getSedisClient();
     }
 
     @Override
-    public <V> V forwardHandle(CacheHandlerContext context) {
+    public <V> V handle(CacheHandlerContext context) {
+        final CacheHandler nextHandler = context.getHandlers().get(NEXT);
         if ((context.getHandlerFlag() & CacheHandlerContext.REDIS_HANDLER) == 0) {
-            return null;
+            return nextHandler.handle(context);
         }
         if (sedisClient == null) {
             logger.warn("Redis访问层有效,但redis客户端对象为null,将从下一层获取数据");
-            return null;
+            return nextHandler.handle(context);
         }
         final String key = context.getKey();
-        final ReentrantLock lock = RedisCacheHandler.getLock(key);
         ShardedJedis jedis = null;
         try {
-            lock.lock();
-            context.setLock(lock); // restore for reverseHandle
             jedis = sedisClient.getResource();
             if (jedis == null) {
-                logger.warn("从redis客户端获取的连接为null,将从下一层获取数据");
-                return null;
+                logger.warn("Redis访问层有效,从redis客户端获取的连接为null,将从下一层获取数据");
+                return nextHandler.handle(context);
             }
-            String val = jedis.get(key);
-            if (val == null) {
-                context.setRedisMissed(true);
-                return null;
-            } else {
-                RedisCacheDto rcd = this.getFromRedisAndConvert(jedis, key);
-                if (rcd == null) {
-                    logger.warn("从redis获取的数据,反序列化失败,将从下一层获取数据, key = " + key);
-                    context.setRedisMissed(true);
+
+            RedisCacheDto rcd = this.getFromRedisAndConvert(jedis, key);
+            if (rcd == null || System.currentTimeMillis() > rcd.getEt()) {
+                logger.info("从redis获取的数据,为空或者失效,从下一层获取数据, key = " + key);
+                V result = nextHandler.handle(context);
+                if (result == null) {
                     return null;
                 }
-                if (System.currentTimeMillis() >= rcd.getEt()) {
-                    context.setRedisMissed(true);
-                    logger.info("从redis获取的数据,已经失效,抛弃,从下一层获取数据, key = " + key);
-                    return null;
-                }
-                rcd.getHt().incrementAndGet();
-                jedis.set(key, JsonUtils.beanToJson(rcd));
-                return (V) rcd.getVal();
+                rcd = new RedisCacheDto();
+                rcd.setKey(key);
+                rcd.setVal(result);
+                parseAndFillValueType(rcd, result);
+                rcd.setEt(System.currentTimeMillis() + context.getCacheAttribute().getRedisExpiredTime());
             }
+            rcd.getHt().incrementAndGet();
+            jedis.set(key, JsonUtils.beanToJson(rcd));
+            return (V) rcd.getVal();
         } catch (Throwable t) {
             logger.error("RedisCacheHandlerError, the context is " + JsonUtils.beanToJson(context), t);
         } finally {
-            //lock.unlock();
             try {
                 sedisClient.returnResource(jedis);
             } catch (Throwable t) {
             }
         }
         return null;
-    }
-
-    @Override
-    public void reverseHandle(CacheHandlerContext context) {
-        if ((context.getHandlerFlag() & CacheHandlerContext.REDIS_HANDLER) == 0) {
-            return;
-        }
-        if (sedisClient == null) {
-            logger.warn("Redis访问层有效,但redis客户端对象为null,逆向操作缓存数据失败");
-            return;
-        }
-        final String key = context.getKey();
-        final ReentrantLock lock = context.getLock() == null ? RedisCacheHandler.getLock(key) : context.getLock();
-        ShardedJedis jedis = null;
-        try {
-            lock.lock();
-            jedis = sedisClient.getResource();
-            if (jedis == null) {
-                logger.warn("从redis客户端获取的连接为null,逆向操作缓存数据失败");
-                return;
-            }
-            if (context.getRedisMissed() && context.getResult() != null) {
-                RedisCacheDto rcd = new RedisCacheDto();
-                rcd.setKey(key);
-                rcd.setVal(context.getResult());
-                parseAndFillValueType(rcd, context.getResult());
-                rcd.setEt(System.currentTimeMillis() + context.getCacheAttribute().getRedisExpiredTime());
-                jedis.set(key, JsonUtils.beanToJson(rcd));
-            }
-        } catch (Throwable t) {
-            logger.error("RedisCacheHandlerError, the context is " + JsonUtils.beanToJson(context), t);
-        } finally {
-            for (int i = 0, lockCount = lock.getHoldCount(); i < lockCount; i++) {
-                lock.unlock();
-            }
-            try {
-                sedisClient.returnResource(jedis);
-            } catch (Throwable t) {
-            }
-        }
     }
 
     /**

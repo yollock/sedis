@@ -11,7 +11,6 @@ import org.aopalliance.intercept.MethodInvocation;
  */
 public interface CacheHandler {
 
-    <V> V forwardHandle(CacheHandlerContext context);
+    <V> V handle(CacheHandlerContext context);
 
-    void reverseHandle(CacheHandlerContext context);
 }

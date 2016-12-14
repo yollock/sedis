@@ -1,6 +1,5 @@
 package com.sedis.cache.spring;
 
-import com.sedis.cache.pipeline.AbstractCacheHandler;
 import com.sedis.cache.pipeline.CacheHandlerContext;
 import com.sedis.cache.pipeline.CachePipeline;
 import com.sedis.cache.pipeline.DefaultCachePipeline;
@@ -10,7 +9,8 @@ import org.springframework.aop.support.AopUtils;
 import redis.clients.jedis.ShardedJedisPool;
 
 import java.io.Serializable;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * 执行增强的拦截器,从Advisor调用getAdvice()获取
@@ -26,23 +26,13 @@ public class CacheInterceptor implements MethodInterceptor, Serializable {
     private long maxPeriod;
     private long delay;
 
-    private CachePipeline pipeline = null;
+    private final ConcurrentMap<CacheAttribute, CachePipeline> pipelines = new ConcurrentHashMap<CacheAttribute, CachePipeline>();
 
     public CacheInterceptor() {
     }
 
     @Override
     public Object invoke(MethodInvocation invocation) throws Throwable {
-        if (pipeline == null) {
-            synchronized (this) {
-                if (pipeline == null) {
-                    pipeline = new DefaultCachePipeline(sedisClient, memoryCount);
-                    AbstractCacheHandler.servicer.schedule( //
-                            new AbstractCacheHandler.ScavengeWorker(lockCount, maxPeriod), delay, TimeUnit.MILLISECONDS //
-                    );
-                }
-            }
-        }
         Class<?> targetClass = (invocation.getThis() != null ? AopUtils.getTargetClass(invocation.getThis()) : null);
         final CacheAttribute cacheAttr = this.cacheAttributeSource.getCacheAttribute(invocation.getMethod(), targetClass);
         // 如果Cache注解信息为空,直接调用目标方法,返回值
@@ -57,6 +47,11 @@ public class CacheInterceptor implements MethodInterceptor, Serializable {
             return invocation.proceed();
         }
 
+        CachePipeline pipeline = pipelines.get(cacheAttr);
+        if (pipeline == null) {
+            pipelines.put(cacheAttr, new DefaultCachePipeline(this));
+            pipeline = pipelines.get(cacheAttr);
+        }
         return pipeline.handle(new CacheHandlerContext(cacheAttr, invocation, key, handlerFlag));
     }
 
@@ -84,5 +79,25 @@ public class CacheInterceptor implements MethodInterceptor, Serializable {
 
     public void setDelay(long delay) {
         this.delay = delay;
+    }
+
+    public int getMemoryCount() {
+        return memoryCount;
+    }
+
+    public ShardedJedisPool getSedisClient() {
+        return sedisClient;
+    }
+
+    public int getLockCount() {
+        return lockCount;
+    }
+
+    public long getMaxPeriod() {
+        return maxPeriod;
+    }
+
+    public long getDelay() {
+        return delay;
     }
 }

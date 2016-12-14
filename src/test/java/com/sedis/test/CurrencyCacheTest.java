@@ -1,9 +1,11 @@
 package com.sedis.test;
 
+import com.sedis.util.JsonUtils;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import java.text.MessageFormat;
+import java.util.List;
 import java.util.Random;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -16,7 +18,9 @@ public class CurrencyCacheTest {
         String configPath = "classpath:spring-context.xml";
         ApplicationContext context = new ClassPathXmlApplicationContext(configPath);
         final WaybillService service = (WaybillService) context.getBean("waybillService");
-        randomKey(service);
+//        oneKey(service);
+        everySingleKey(service);
+//        randomKey(service);
     }
 
     private static void oneKey(final WaybillService service) {
@@ -33,10 +37,10 @@ public class CurrencyCacheTest {
                 @Override
                 public void run() {
                     long start = System.currentTimeMillis();
-                    service.findListById(code);
+                    List<Waybill> waybills = service.findListById(code);
                     long end = System.currentTimeMillis();
                     time.getAndAdd(end - start);
-                    System.out.println(MessageFormat.format("current task is {0} and time is {1}", index, end - start));
+                    System.out.println(MessageFormat.format("current task is {0}, time is {1}, val is {2}", index, end - start, JsonUtils.beanToJson(waybills)));
                     countless.decrementAndGet();
                 }
             });
@@ -68,10 +72,10 @@ public class CurrencyCacheTest {
                 @Override
                 public void run() {
                     long start = System.currentTimeMillis();
-                    service.findListById(Integer.toString(random.nextInt(9999)));
+                    List<Waybill> waybills = service.findListById(Integer.toString(random.nextInt(9999)));
                     long end = System.currentTimeMillis();
                     time.getAndAdd(end - start);
-                    System.out.println(MessageFormat.format("current task is {0} and time is {1}", index, end - start));
+                    System.out.println(MessageFormat.format("current task is {0}, time is {1}, val is {2}", index, end - start, JsonUtils.beanToJson(waybills)));
                     countless.decrementAndGet();
                 }
             });
@@ -102,10 +106,10 @@ public class CurrencyCacheTest {
                 @Override
                 public void run() {
                     long start = System.currentTimeMillis();
-                    service.findListById(Integer.toString(index));
+                    List<Waybill> waybills = service.findListById(Integer.toString(index));
                     long end = System.currentTimeMillis();
                     time.getAndAdd(end - start);
-                    System.out.println(MessageFormat.format("current task is {0} and time is {1}", index, end - start));
+                    System.out.println(MessageFormat.format("current task is {0}, time is {1}, val is {2}", index, end - start, JsonUtils.beanToJson(waybills)));
                     countless.decrementAndGet();
                 }
             });

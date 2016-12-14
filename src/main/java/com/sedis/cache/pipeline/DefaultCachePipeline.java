@@ -1,10 +1,9 @@
 package com.sedis.cache.pipeline;
 
-import redis.clients.jedis.ShardedJedis;
-import redis.clients.jedis.ShardedJedisPool;
+import com.sedis.cache.spring.CacheInterceptor;
 
-import java.util.*;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * pipeline持有所有的handler,且handler的排序是固定的,
@@ -24,43 +23,23 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class DefaultCachePipeline implements CachePipeline {
 
-    List<CacheHandler> defauldHandlers = null;
+    List<CacheHandler> defaultHandlers = null;
 
-    public DefaultCachePipeline() {
-        List<CacheHandler> tempHandlers = new ArrayList<CacheHandler>(2);
-        tempHandlers.add(new MemoryCacheHandler(10000));
-        tempHandlers.add(new RedisCacheHandler());
-        defauldHandlers = tempHandlers;
-    }
-
-    public DefaultCachePipeline(ShardedJedisPool sedisClient, int memoryCount) {
-        List<CacheHandler> tempHandlers = new ArrayList<CacheHandler>(2);
-        tempHandlers.add(new MemoryCacheHandler(memoryCount));
-        tempHandlers.add(new RedisCacheHandler(sedisClient));
-        defauldHandlers = tempHandlers;
+    public DefaultCachePipeline(CacheInterceptor interceptor) {
+        List<CacheHandler> tempHandlers = new ArrayList<CacheHandler>(3);
+        tempHandlers.add(new LockHandler(interceptor));
+        tempHandlers.add(new MemoryCacheHandler(interceptor));
+        tempHandlers.add(new RedisCacheHandler(interceptor));
+        defaultHandlers = tempHandlers;
     }
 
     @Override
     public <V> V handle(CacheHandlerContext context) {
-        List<CacheHandler> handlers = new ArrayList<CacheHandler>(3);
-        handlers.addAll(defauldHandlers);
+        List<CacheHandler> handlers = new ArrayList<CacheHandler>(defaultHandlers.size() + 1);
+        handlers.addAll(defaultHandlers);
         handlers.add(new DataSourceHandler(context.getInvocation()));
-        Object result = null;
-        final int length = handlers.size();
-        for (int i = 0; i < length; i++) {
-            if (result != null) {
-                break;
-            }
-            result = handlers.get(i).forwardHandle(context);
-        }
-        if (result == null) {
-            return null;
-        }
-        context.setResult(result);
-        for (int i = length; i > 0; i--) {
-            handlers.get(i - 1).reverseHandle(context);
-        }
-        return (V) result;
+        context.setHandlers(handlers);
+        return (V) handlers.get(0).handle(context);
     }
 
 
