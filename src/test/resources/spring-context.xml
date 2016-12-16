@@ -14,7 +14,7 @@
             http://www.springframework.org/schema/aop/spring-aop.xsd">
 
 
-    <sedis:annotation-driven sedis-client="sedisClient"/>
+    <sedis:annotation-driven sedis-client="sedisClient" proxy-target-class="true"/>
 
     <bean id="jedisPoolConfig" class="redis.clients.jedis.JedisPoolConfig">
         <property name="maxIdle" value="10"/>
@@ -31,14 +31,14 @@
                     <constructor-arg value="123456"/>
                 </bean>
                 <!--<bean class="redis.clients.jedis.JedisShardInfo">-->
-                    <!--<constructor-arg value="127.0.0.1"/>-->
-                    <!--<constructor-arg type="int" value="6378"/>-->
-                    <!--<constructor-arg value="123456"/>-->
+                <!--<constructor-arg value="127.0.0.1"/>-->
+                <!--<constructor-arg type="int" value="6378"/>-->
+                <!--<constructor-arg value="123456"/>-->
                 <!--</bean>-->
                 <!--<bean class="redis.clients.jedis.JedisShardInfo">-->
-                    <!--<constructor-arg value="127.0.0.1"/>-->
-                    <!--<constructor-arg type="int" value="6377"/>-->
-                    <!--<constructor-arg value="123456"/>-->
+                <!--<constructor-arg value="127.0.0.1"/>-->
+                <!--<constructor-arg type="int" value="6377"/>-->
+                <!--<constructor-arg value="123456"/>-->
                 <!--</bean>-->
             </list>
         </constructor-arg>
