@@ -142,8 +142,8 @@ sedis所有的缓存特性，只有两个地方可以设置，一个是spring标
 `<sedis:annotation-driven>`目前支持的属性：
 
 - `sedis-client`：redis客户端实现，目前为`redis.clients.jedis.ShardedJedisPool`；
-- `proxy-target-class`：false表示使用JDK动态代理,true表示使用CGLIB动态代理；
-- `memory-count`：内存缓存最大容量；
+- `proxy-target-class`：false表示使用JDK动态代理,true表示使用CGLIB动态代理，默认false；
+- `memory-count`：内存缓存最大容量，默认10000；
 - `lock-count`：缓存处理器的加锁数量,使用锁避免相同key的并发问题，可以使用默认值10000；
 - `max-period`：缓存处理器的锁的生存周期长度，默认1小时，单位毫秒；
 - `delay`：执行缓存处理器中的锁的清理任务的执行间隔，默认1小时，单位毫秒；
@@ -156,7 +156,7 @@ sedis所有的缓存特性，只有两个地方可以设置，一个是spring标
 - `memoryEnable`：是否支持内存缓存，true表示支持，false表示不支持，默认false；
 - `memoryExpiredTime`：内存缓存的过期时间，默认半小时，单位毫秒；
 - `redisEnable`：是否支持redis缓存，true表示支持，false表示不支持，默认false；
-- `redisExpiredTime`：redis缓存的过期时间，默认半小时，单位毫秒；
+- `redisExpiredTime`：redis缓存的过期时间，默认一小时，单位毫秒；
 - `dataSourceEnable`：是否需要从数据层获取原始数据，默认为true，表示支持，建议使用默认配置。
 
 
