@@ -2,10 +2,7 @@ package com.sedis.test;
 
 import com.sedis.cache.annotation.Cache;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.locks.LockSupport;
 
 /**
@@ -13,16 +10,14 @@ import java.util.concurrent.locks.LockSupport;
  */
 public class WaybillServiceImpl implements WaybillService {
     @Override
-    @Cache(memoryEnable = true, redisEnable = true, key = "waybill@args0")
+    @Cache(redisEnable = true, key = "waybill@args0")
     public Waybill findById(String code) {
-        LockSupport.parkNanos(this, 1000000000L);
         return new Waybill(code, 1);
     }
 
     @Override
-    @Cache(redisEnable = true, memoryEnable = false, key = "waybillList@args0")
+    @Cache(redisEnable = true, key = "waybillList@args0")
     public List<Waybill> findListById(String code) {
-        //LockSupport.parkNanos(this, 1000000000L);
         List waybills = new ArrayList();
         waybills.add(new Waybill(code, 1));
         waybills.add(new Waybill(code, 2));
@@ -32,7 +27,6 @@ public class WaybillServiceImpl implements WaybillService {
     @Override
     @Cache(redisEnable = true, key = "waybillArray@args0")
     public Waybill[] findArrayById(String code) {
-        //LockSupport.parkNanos(this, 1000000000L);
         Waybill[] waybills = new Waybill[3];
         waybills[0] = new Waybill(code, 1);
         waybills[1] = new Waybill(code, 2);
@@ -43,23 +37,30 @@ public class WaybillServiceImpl implements WaybillService {
     @Override
     @Cache(redisEnable = true, key = "waybillMap@args0")
     public Map<String, Waybill> findMapById(String code) {
-        //LockSupport.parkNanos(this, 1000000000L);
         Map<String, Waybill> waybillMap = new HashMap<String, Waybill>();
         waybillMap.put(code, new Waybill(code, 1));
         return waybillMap;
     }
 
     @Override
-    @Cache(memoryEnable = true, redisEnable = true, key = "waybillString@args0")
-    public String findStringById(String code) {
-        LockSupport.parkNanos(this, 1000000000L);
-        return "qawsxzcde2131231";
+    @Cache(redisEnable = true, key = "waybillSet@args0")
+    public Set<Waybill> findSetById(String code) {
+        Set<Waybill> waybillSet = new HashSet<Waybill>();
+        waybillSet.add(new Waybill(code, 1));
+        waybillSet.add(new Waybill(code, 2));
+        waybillSet.add(new Waybill(code, 3));
+        return waybillSet;
     }
 
     @Override
-    @Cache(memoryEnable = true, redisEnable = true, key = "waybillInteger@args0")
+    @Cache(redisEnable = true, key = "waybillString@args0")
+    public String findStringById(String code) {
+        return "string12312312";
+    }
+
+    @Override
+    @Cache(redisEnable = true, key = "waybillInteger@args0")
     public Integer findIntegerById(String code) {
-        LockSupport.parkNanos(this, 1000000000L);
-        return 123123;
+        return 12345678;
     }
 }

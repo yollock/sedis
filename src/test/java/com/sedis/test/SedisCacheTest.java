@@ -10,7 +10,18 @@ public class SedisCacheTest {
         ApplicationContext context = new ClassPathXmlApplicationContext(configPath);
         WaybillService service = (WaybillService) context.getBean("waybillService");
 
-        String code = "14";
+        String code = "1";
+
+        long s1 = System.currentTimeMillis();
+        System.out.println("findArrayById, " + service.findArrayById(code)[0]);
+        long e1 = System.currentTimeMillis();
+        System.out.println("f1 is " + (e1 - s1));
+        long s2 = System.currentTimeMillis();
+        System.out.println("findArrayById, " + service.findArrayById(code)[0]);
+        long e2 = System.currentTimeMillis();
+        System.out.println("f2 is " + (e2 - s2));
+
+        System.out.println("==================================");
 
         long s3 = System.currentTimeMillis();
         System.out.println("findListById, " + service.findListById(code));
@@ -34,17 +45,6 @@ public class SedisCacheTest {
 
         System.out.println("==================================");
 
-        long s1 = System.currentTimeMillis();
-        System.out.println("findArrayById, " + service.findArrayById(code));
-        long e1 = System.currentTimeMillis();
-        System.out.println("f1 is " + (e1 - s1));
-        long s2 = System.currentTimeMillis();
-        System.out.println("findArrayById, " + service.findArrayById(code));
-        long e2 = System.currentTimeMillis();
-        System.out.println("f2 is " + (e2 - s2));
-
-        System.out.println("==================================");
-
         long s7 = System.currentTimeMillis();
         System.out.println("findStringById, " + service.findStringById(code));
         long e7 = System.currentTimeMillis();
@@ -64,6 +64,28 @@ public class SedisCacheTest {
         System.out.println("findIntegerById, " + service.findIntegerById(code));
         long e10 = System.currentTimeMillis();
         System.out.println("f10 is " + (e10 - s10));
+
+        System.out.println("==================================");
+
+        long s11 = System.currentTimeMillis();
+        System.out.println("findSetById, " + service.findSetById(code));
+        long e11 = System.currentTimeMillis();
+        System.out.println("f11 is " + (e11 - s11));
+        long s12 = System.currentTimeMillis();
+        System.out.println("findSetById, " + service.findSetById(code));
+        long e12 = System.currentTimeMillis();
+        System.out.println("f12 is " + (e12 - s12));
+
+        System.out.println("==================================");
+
+        long s13 = System.currentTimeMillis();
+        System.out.println("findById, " + service.findById(code));
+        long e13 = System.currentTimeMillis();
+        System.out.println("f13 is " + (e13 - s13));
+        long s14 = System.currentTimeMillis();
+        System.out.println("findById, " + service.findById(code));
+        long e14 = System.currentTimeMillis();
+        System.out.println("f14 is " + (e14 - s14));
 
         System.out.println("==================================");
 

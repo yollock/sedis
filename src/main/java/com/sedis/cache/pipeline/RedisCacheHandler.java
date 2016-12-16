@@ -11,6 +11,10 @@ import redis.clients.jedis.ShardedJedis;
 import redis.clients.jedis.ShardedJedisPool;
 
 import java.text.MessageFormat;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class RedisCacheHandler implements CacheHandler {
@@ -50,23 +54,29 @@ public class RedisCacheHandler implements CacheHandler {
             }
 
             RedisCacheDto rcd = this.getFromRedisAndConvert(jedis, key);
+            V result;
             if (rcd == null || System.currentTimeMillis() > rcd.getEt()) {
                 logger.info("从redis获取的数据,为空或者失效,从下一层获取数据, key = " + key);
-                V result = nextHandler.handle(context);
+                result = nextHandler.handle(context);
                 if (result == null) {
                     return null;
                 }
                 rcd = new RedisCacheDto();
                 rcd.setKey(key);
-                rcd.setVal(result);
+                rcd.setJson(JsonUtils.beanToJson(result));
                 parseAndFillValueType(rcd, result);
                 rcd.setEt(System.currentTimeMillis() + context.getCacheAttribute().getRedisExpiredTime());
+            } else {
+                result = (V) rcd.getVal();
             }
             rcd.getHt().incrementAndGet();
+            rcd.setVal(null);
             jedis.set(key, JsonUtils.beanToJson(rcd));
+            rcd.setVal(result);
             return (V) rcd.getVal();
         } catch (Throwable t) {
             logger.error("RedisCacheHandlerError, the context is " + JsonUtils.beanToJson(context), t);
+            t.printStackTrace();
         } finally {
             try {
                 sedisClient.returnResource(jedis);
@@ -84,46 +94,76 @@ public class RedisCacheHandler implements CacheHandler {
      * 4.原生类型,比如String,
      */
     private <V> RedisCacheDto<V> getFromRedisAndConvert(ShardedJedis jedis, String key) {
-        RedisCacheDto<V> redisCacheDto = null;
+        RedisCacheDto<V> rcd = null;
         try {
-            final String redisCacheDtoJson = jedis.get(key);
-            if (redisCacheDtoJson == null || redisCacheDtoJson.trim().isEmpty()) {
+            final String rcdJson = jedis.get(key);
+            if (rcdJson == null || rcdJson.trim().isEmpty()) {
                 return null;
             }
-            redisCacheDto = JsonUtils.jsonToBean(redisCacheDtoJson, RedisCacheDto.class);
-            final int type = redisCacheDto.getType();
-            if (type == 1) { // array
-                String arrayJson = redisCacheDto.getArrayJson();
-                TypeFactory typeFactory = TypeFactory.defaultInstance();
-                JavaType javaType = typeFactory.constructArrayType(redisCacheDto.getVec());
-                redisCacheDto.setVal((V) JsonUtils.jsonToBean(arrayJson, javaType));
-                return redisCacheDto;
-            } else {
-                return redisCacheDto;
+            rcd = JsonUtils.jsonToBean(rcdJson, RedisCacheDto.class);
+            final int type = rcd.getType();
+            TypeFactory typeFactory = TypeFactory.defaultInstance();
+            String json = rcd.getJson();
+            JavaType javaType = null;
+            if (type == 0) { // element
+                javaType = typeFactory.constructType(rcd.getEc());
+                rcd.setVal((V) JsonUtils.jsonToBean(json, javaType));
+                return rcd;
+            } else if (type == 1) { // array
+                javaType = typeFactory.constructArrayType(rcd.getEc());
+            } else if (type == 2) { // collection
+                javaType = typeFactory.constructCollectionType(rcd.getCc(), rcd.getEc());
+            } else if (type == 3) { // map
+                javaType = typeFactory.constructMapType(rcd.getMc(), rcd.getMkc(), rcd.getEc());
             }
+            if (json.length() <= 0 || javaType == null) {
+                return rcd;
+            }
+            rcd.setVal((V) JsonUtils.jsonToBean(json, javaType));
         } catch (Throwable t) {
-            redisCacheDto = null;
+            rcd = null;
             logger.error("RedisCacheHandlerConvertError, the key is " + key, t);
+            t.printStackTrace();
         }
-        return redisCacheDto;
+        return rcd;
     }
 
-    private void parseAndFillValueType(RedisCacheDto redisCacheDto, Object value) {
-        redisCacheDto.setVec(null);
-        redisCacheDto.setArray(false);
-        redisCacheDto.setType(0);
+    private void parseAndFillValueType(RedisCacheDto rcd, Object value) {
+        rcd.setEc(null);
+        rcd.setCc(null);
+        rcd.setMc(null);
+        rcd.setMkc(null);
+        rcd.setType(0);
         if (value == null) {
             return;
         }
         if (value.getClass().isArray()) {
-            redisCacheDto.setType(1);
-            redisCacheDto.setArray(true);
+            rcd.setType(1);
             Object[] arrayValue = (Object[]) value;
             if (arrayValue.length > 0) {
-                redisCacheDto.setVec(arrayValue[0].getClass());
+                rcd.setEc(arrayValue[0].getClass());
             }
-            redisCacheDto.setArrayJson(JsonUtils.beanToJson(value));
-            redisCacheDto.setVal(null);
+            return;
+        } else if (value instanceof Collection) {
+            rcd.setType(2);
+            Collection collectionValue = (Collection) value;
+            if (collectionValue.size() > 0) {
+                rcd.setCc(collectionValue.getClass());
+                rcd.setEc(collectionValue.iterator().next().getClass());
+            }
+            return;
+        } else if (value instanceof Map) {
+            rcd.setType(3);
+            Map mapValue = (Map) value;
+            if (mapValue.size() > 0) {
+                Map.Entry entry = (Map.Entry) mapValue.entrySet().iterator().next();
+                rcd.setMc(mapValue.getClass());
+                rcd.setMkc(entry.getKey().getClass());
+                rcd.setEc(entry.getValue().getClass());
+            }
+            return;
+        } else {
+            rcd.setEc(value.getClass());
         }
     }
 

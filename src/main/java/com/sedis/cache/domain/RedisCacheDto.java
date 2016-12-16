@@ -1,19 +1,26 @@
 package com.sedis.cache.domain;
 
+import java.util.Collection;
+import java.util.Map;
+
 /**
  * Created by yollock on 2016/9/13.
  */
 public class RedisCacheDto<V> extends CacheDto<V> {
 
     /**
-     * array 1
-     * list  2
-     * map   3
+     * element 0
+     * array   1
+     * list    2
+     * map     3
      */
     private int type;
-    private Class<?> vec;
-    private boolean array;
-    private String arrayJson;
+    private String json;
+
+    private Class<?> ec;
+    private Class<? extends Collection> cc;
+    private Class<? extends Map> mc;
+    private Class<?> mkc;
 
     public int getType() {
         return type;
@@ -23,37 +30,43 @@ public class RedisCacheDto<V> extends CacheDto<V> {
         this.type = type;
     }
 
-    public Class<?> getVec() {
-        return vec;
+    public String getJson() {
+        return json;
     }
 
-    public void setVec(Class<?> vec) {
-        this.vec = vec;
+    public void setJson(String json) {
+        this.json = json;
     }
 
-    public boolean isArray() {
-        return array;
+    public Class<?> getEc() {
+        return ec;
     }
 
-    public void setArray(boolean array) {
-        this.array = array;
+    public void setEc(Class<?> ec) {
+        this.ec = ec;
     }
 
-    public String getArrayJson() {
-        return arrayJson;
+    public Class<? extends Collection> getCc() {
+        return cc;
     }
 
-    public void setArrayJson(String arrayJson) {
-        this.arrayJson = arrayJson;
+    public void setCc(Class<? extends Collection> cc) {
+        this.cc = cc;
     }
 
-    @Override
-    public String toString() {
-        return "RedisCacheDto{" +
-                "type=" + type +
-                ", vec=" + vec +
-                ", array=" + array +
-                ", arrayJson='" + arrayJson + '\'' +
-                '}';
+    public Class<? extends Map> getMc() {
+        return mc;
+    }
+
+    public void setMc(Class<? extends Map> mc) {
+        this.mc = mc;
+    }
+
+    public Class<?> getMkc() {
+        return mkc;
+    }
+
+    public void setMkc(Class<?> mkc) {
+        this.mkc = mkc;
     }
 }

@@ -14,7 +14,7 @@
             http://www.springframework.org/schema/aop/spring-aop.xsd">
 
 
-    <sedis:annotation-driven memory-count="1000000" sedis-client="sedisClient"/>
+    <sedis:annotation-driven sedis-client="sedisClient"/>
 
     <bean id="jedisPoolConfig" class="redis.clients.jedis.JedisPoolConfig">
         <property name="maxIdle" value="10"/>
@@ -46,8 +46,8 @@
 
     <bean id="waybillService" class="com.sedis.test.WaybillServiceImpl"></bean>
 
-    <aop:aspectj-autoproxy/>
+    <!--<aop:aspectj-autoproxy/>-->
 
-    <tx:annotation-driven/>
+    <!--<tx:annotation-driven/>-->
 
 </beans>
