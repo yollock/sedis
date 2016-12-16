@@ -133,11 +133,11 @@
 	}
 	```
 
-注意：在业务代码中，使用缓存，只需要在获取的目标方法，添加@Cache注解即可。key的语法为"全局唯一字符串@参数列表(参数用@隔开)"。如果上面的接口有多个参数，那么应该写成这样，"waybillService.findById@args0@args1@args2"，其中"waybillService.findById"在整个应用中，保持唯一。
+注意：在业务代码中，使用缓存，只需要在获取的目标方法，添加@Cache注解即可。key的语法为"全局唯一字符串@参数列表(参数用@隔开)"。如果上面的接口有多个参数，那么应该写成这样，`waybillService.findById@args0@args1@args2`，其中"waybillService.findById"在整个应用中，保持唯一。
 
 - **用户指南**
 
-sedis所有的缓存特性,只有两个地方可以设置，一个是spring标签`<sedis:annotation-driven>`，另一个是注解`@Cache`，尽可能提高产品的易用性。
+sedis所有的缓存特性，只有两个地方可以设置，一个是spring标签`<sedis:annotation-driven>`，另一个是注解`@Cache`，尽可能提高产品的易用性。
 
 `<sedis:annotation-driven>`目前支持的属性：
 
@@ -160,7 +160,6 @@ sedis所有的缓存特性,只有两个地方可以设置，一个是spring标�
 - `dataSourceEnable`：是否需要从数据层获取原始数据，默认为true，表示支持，建议使用默认配置。
 
 
-### 架构设计 ### 
 
 
 
