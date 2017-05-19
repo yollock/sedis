@@ -1,7 +1,8 @@
 package com.sedis.cache.spring;
 
 import com.sedis.cache.annotation.Cache;
-import com.sedis.cache.keytool.CacheKeyGenerator;
+import com.sedis.cache.annotation.CacheExpire;
+import com.sedis.cache.common.SedisConst;
 import org.springframework.core.annotation.AnnotationUtils;
 
 import java.lang.reflect.AnnotatedElement;
@@ -13,15 +14,29 @@ public class SpringCacheAnnotationParser implements CacheAnnotationParser {
 
     @Override
     public CacheAttribute parseCacheAnnotation(AnnotatedElement ae) {
-        Cache ann = AnnotationUtils.getAnnotation(ae, Cache.class);
-        if (ann == null) {
-            return null;
+        Cache cache = AnnotationUtils.getAnnotation(ae, Cache.class);
+        if (cache != null) {
+            return parseCacheAnnotation(cache, SedisConst.CACHE);
         }
-        return parseCacheAnnotation(ann);
+        CacheExpire cacheExpire = AnnotationUtils.getAnnotation(ae, CacheExpire.class);
+        if (cache != null) {
+            return parseCacheExpireAnnotation(cacheExpire, SedisConst.CACHE_EXPIRE);
+        }
+        return null;
     }
 
-    public CacheAttribute parseCacheAnnotation(Cache cache) {
+    private CacheAttribute parseCacheExpireAnnotation(CacheExpire cacheExpire, int type) {
+        return new CacheAttribute(cacheExpire.key(), //
+                type, //
+                cacheExpire.memoryEnable(), //
+                cacheExpire.redisEnable(), //
+                cacheExpire.dataSourceEnable() //
+        );
+    }
+
+    public CacheAttribute parseCacheAnnotation(Cache cache, int type) {
         return new CacheAttribute(cache.key(),//
+                type, //
                 cache.memoryEnable(),//
                 cache.memoryExpiredTime(),//
                 cache.redisEnable(),//

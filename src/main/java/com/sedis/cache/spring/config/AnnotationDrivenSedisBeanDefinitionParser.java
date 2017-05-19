@@ -27,7 +27,7 @@ public class AnnotationDrivenSedisBeanDefinitionParser implements BeanDefinition
         public static void configureAutoProxyCreator(Element element, ParserContext parserContext) {
             AopNamespaceUtils.registerAutoProxyCreatorIfNecessary(parserContext, element);
 
-            String sedisAdvisorBeanName = "com.sedis.cache.spring.config.internalSedisAdvisor";
+            String sedisAdvisorBeanName = "com.sedis.CACHE.spring.config.internalSedisAdvisor";
             if (!parserContext.getRegistry().containsBeanDefinition(sedisAdvisorBeanName)) {
                 Object eleSource = parserContext.extractSource(element);
 

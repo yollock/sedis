@@ -28,9 +28,9 @@ public class SedisNamespaceHandlerTest {
 }
 
 // <sedis:annotation-driven/>
-// org.springframework.cache.interceptor.CacheInterceptor#0
-// org.springframework.cache.config.internalCacheAdvisor
-// org.springframework.cache.annotation.AnnotationCacheOperationSource#0
+// org.springframework.CACHE.interceptor.CacheInterceptor#0
+// org.springframework.CACHE.config.internalCacheAdvisor
+// org.springframework.CACHE.annotation.AnnotationCacheOperationSource#0
 // org.springframework.aop.config.internalAutoProxyCreator
 
 // <aop:aspectj-autoproxy/>
@@ -43,10 +43,10 @@ public class SedisNamespaceHandlerTest {
 // org.springframework.aop.config.internalAutoProxyCreator
 
 // 都放开
-// org.springframework.cache.interceptor.CacheInterceptor#0
+// org.springframework.CACHE.interceptor.CacheInterceptor#0
 // org.springframework.transaction.interceptor.TransactionInterceptor#0
 // org.springframework.transaction.annotation.AnnotationTransactionAttributeSource#0
 // org.springframework.transaction.config.internalTransactionAdvisor
-// org.springframework.cache.config.internalCacheAdvisor
-// org.springframework.cache.annotation.AnnotationCacheOperationSource#0
+// org.springframework.CACHE.config.internalCacheAdvisor
+// org.springframework.CACHE.annotation.AnnotationCacheOperationSource#0
 // org.springframework.aop.config.internalAutoProxyCreator 基础自动代理对象只会创建一个

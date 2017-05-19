@@ -1,6 +1,6 @@
 package com.sedis.test;
 
-import com.sedis.util.JsonUtils;
+import com.sedis.util.JsonUtil;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
@@ -40,7 +40,7 @@ public class CurrencyCacheTest {
                     List<Waybill> waybills = service.findListById(code);
                     long end = System.currentTimeMillis();
                     time.getAndAdd(end - start);
-                    System.out.println(MessageFormat.format("current task is {0}, time is {1}, val is {2}", index, end - start, JsonUtils.beanToJson(waybills)));
+                    System.out.println(MessageFormat.format("current task is {0}, time is {1}, val is {2}", index, end - start, JsonUtil.beanToJson(waybills)));
                     countless.decrementAndGet();
                 }
             });
@@ -75,7 +75,7 @@ public class CurrencyCacheTest {
                     List<Waybill> waybills = service.findListById(Integer.toString(random.nextInt(9999)));
                     long end = System.currentTimeMillis();
                     time.getAndAdd(end - start);
-                    System.out.println(MessageFormat.format("current task is {0}, time is {1}, val is {2}", index, end - start, JsonUtils.beanToJson(waybills)));
+                    System.out.println(MessageFormat.format("current task is {0}, time is {1}, val is {2}", index, end - start, JsonUtil.beanToJson(waybills)));
                     countless.decrementAndGet();
                 }
             });
@@ -109,7 +109,7 @@ public class CurrencyCacheTest {
                     List<Waybill> waybills = service.findListById(Integer.toString(index));
                     long end = System.currentTimeMillis();
                     time.getAndAdd(end - start);
-                    System.out.println(MessageFormat.format("current task is {0}, time is {1}, val is {2}", index, end - start, JsonUtils.beanToJson(waybills)));
+                    System.out.println(MessageFormat.format("current task is {0}, time is {1}, val is {2}", index, end - start, JsonUtil.beanToJson(waybills)));
                     countless.decrementAndGet();
                 }
             });

@@ -1,5 +1,6 @@
 package com.sedis.cache.pipeline;
 
+import com.sedis.cache.common.SedisConst;
 import com.sedis.cache.domain.MemoryCacheDto;
 import com.sedis.cache.spring.CacheInterceptor;
 import com.sedis.util.SingleLruCache;
@@ -35,6 +36,19 @@ public class MemoryCacheHandler implements CacheHandler {
         if ((context.getHandlerFlag() & CacheHandlerContext.MEMORY_HANDLER) == 0) {
             return nextHandler.handle(context);
         }
+
+        switch (context.getCacheAttribute().getType()) {
+            case SedisConst.CACHE:
+                return cache(context, nextHandler);
+            case SedisConst.CACHE_EXPIRE:
+                cache.remove(context.getKey());
+                return nextHandler.handle(context);
+            default:
+                return null;
+        }
+    }
+
+    private <V> V cache(CacheHandlerContext context, CacheHandler nextHandler) {
         final String key = context.getKey();
         MemoryCacheDto mcd = cache.get(key);
         if (mcd == null || System.currentTimeMillis() > mcd.getEt()) {
@@ -51,8 +65,5 @@ public class MemoryCacheHandler implements CacheHandler {
         }
         mcd.getHt().incrementAndGet();
         return (V) mcd.getVal();
-
     }
-
-
 }

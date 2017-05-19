@@ -6,6 +6,8 @@ package com.sedis.cache.spring;
 public class CacheAttribute {
 
     String key;
+    /** 1@Cache, 2@CacheExpire */
+    int type;
     boolean memoryEnable;
     long memoryExpiredTime;
     boolean redisEnable;
@@ -15,14 +17,28 @@ public class CacheAttribute {
     public CacheAttribute() {
     }
 
+    public CacheAttribute(String key, int type) {
+        this.key = key;
+        this.type = type;
+    }
+
+    public CacheAttribute(String key, int type, boolean memoryEnable, boolean redisEnable, boolean dataSourceEnable) {
+        this.key = key;
+        this.type = type;
+        this.memoryEnable = memoryEnable;
+        this.redisEnable = redisEnable;
+        this.dataSourceEnable = dataSourceEnable;
+    }
+
     public CacheAttribute(String key, //
-                          boolean memoryEnable, //
+                          int type, boolean memoryEnable, //
                           long memoryExpiredTime, //
                           boolean redisEnable, //
                           long redisExpiredTime,//
                           boolean dataSourceEnable//
     ) {
         this.key = key;
+        this.type = type;
         this.memoryEnable = memoryEnable;
         this.memoryExpiredTime = memoryExpiredTime;
         this.redisEnable = redisEnable;
@@ -81,6 +97,15 @@ public class CacheAttribute {
 
     public CacheAttribute setDataSourceEnable(boolean dataSourceEnable) {
         this.dataSourceEnable = dataSourceEnable;
+        return this;
+    }
+
+    public int getType() {
+        return type;
+    }
+
+    public CacheAttribute setType(int type) {
+        this.type = type;
         return this;
     }
 

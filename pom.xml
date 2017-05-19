@@ -16,7 +16,11 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <org.springframework.version>4.1.0.RELEASE</org.springframework.version>
-        <aspectj.version>1.6.11</aspectj.version>
+        <javax.servlet.version>3.1.0</javax.servlet.version>
+        <redis.clients.version>2.6.1</redis.clients.version>
+        <jackson.version>1.9.13</jackson.version>
+        <log4j.version>1.2.16</log4j.version>
+        <junit.version>4.12</junit.version>
     </properties>
 
     <dependencies>
@@ -28,27 +32,29 @@
         <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>
-            <version>3.1.0</version>
+            <version>${javax.servlet.version}</version>
+            <scope>provided</scope>
+            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>redis.clients</groupId>
             <artifactId>jedis</artifactId>
-            <version>2.6.1</version>
+            <version>${redis.clients.version}</version>
         </dependency>
         <dependency>
             <groupId>org.codehaus.jackson</groupId>
             <artifactId>jackson-mapper-asl</artifactId>
-            <version>1.9.13</version>
+            <version>${jackson.version}</version>
         </dependency>
         <dependency>
             <groupId>log4j</groupId>
             <artifactId>log4j</artifactId>
-            <version>1.2.16</version>
+            <version>${log4j.version}</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.12</version>
+            <version>${junit.version}</version>
         </dependency>
     </dependencies>
     <build>

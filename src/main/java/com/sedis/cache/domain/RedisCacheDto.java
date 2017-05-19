@@ -17,10 +17,10 @@ public class RedisCacheDto<V> extends CacheDto<V> {
     private int type;
     private String json;
 
-    private Class<?> ec;
-    private Class<? extends Collection> cc;
-    private Class<? extends Map> mc;
-    private Class<?> mkc;
+    private Class<?> ec; // element class
+    private Class<? extends Collection> cc; // collection class
+    private Class<? extends Map> mc; // map class
+    private Class<?> mkc; // map key class
 
     public int getType() {
         return type;

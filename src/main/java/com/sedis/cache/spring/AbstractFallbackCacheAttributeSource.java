@@ -37,7 +37,7 @@ public abstract class AbstractFallbackCacheAttributeSource implements CacheAttri
         } else {
             // We need to work it out.
             CacheAttribute txAtt = computeTransactionAttribute(method, targetClass);
-            // Put it in the cache.
+            // Put it in the CACHE.
             if (txAtt == null) {
                 this.attributeCache.put(cacheKey, NULL_CACHE_ATTRIBUTE);
             } else {

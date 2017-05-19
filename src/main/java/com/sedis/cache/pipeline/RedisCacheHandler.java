@@ -1,21 +1,17 @@
 package com.sedis.cache.pipeline;
 
-import com.sedis.cache.domain.MemoryCacheDto;
+import com.sedis.cache.common.SedisConst;
 import com.sedis.cache.domain.RedisCacheDto;
 import com.sedis.cache.spring.CacheInterceptor;
-import com.sedis.util.JsonUtils;
+import com.sedis.util.JsonUtil;
 import org.apache.log4j.Logger;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.type.JavaType;
 import redis.clients.jedis.ShardedJedis;
 import redis.clients.jedis.ShardedJedisPool;
 
-import java.text.MessageFormat;
 import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.concurrent.locks.ReentrantLock;
 
 public class RedisCacheHandler implements CacheHandler {
 
@@ -44,8 +40,44 @@ public class RedisCacheHandler implements CacheHandler {
             logger.warn("Redis访问层有效,但redis客户端对象为null,将从下一层获取数据");
             return nextHandler.handle(context);
         }
+
+        switch (context.getCacheAttribute().getType()) {
+            case SedisConst.CACHE:
+                return cache(context, nextHandler);
+            case SedisConst.CACHE_EXPIRE:
+                return cacheExpire(context, nextHandler);
+            default:
+                return null;
+        }
+    }
+
+    private <V> V cacheExpire(CacheHandlerContext context, CacheHandler nextHandler) {
+        ShardedJedis jedis = null;
+        try {
+            jedis = sedisClient.getResource();
+            if (jedis == null) {
+                logger.warn("Redis访问层有效, 从redis客户端获取的连接为null, 不会删除redis数据");
+            } else {
+                jedis.del(context.getKey());
+                logger.debug("删除redis缓存数据, key = " + context.getKey());
+            }
+        } catch (Throwable e) {
+            logger.error("RedisCacheHandler.cacheExpire, the context is " + JsonUtil.beanToJson(context), e);
+        } finally {
+            try {
+                if (jedis != null) {
+                    sedisClient.returnResource(jedis);
+                }
+            } catch (Throwable e) {
+            }
+        }
+        return nextHandler.handle(context);
+    }
+
+    private <V> V cache(CacheHandlerContext context, CacheHandler nextHandler) {
         final String key = context.getKey();
         ShardedJedis jedis = null;
+        V result = null;
         try {
             jedis = sedisClient.getResource();
             if (jedis == null) {
@@ -54,7 +86,6 @@ public class RedisCacheHandler implements CacheHandler {
             }
 
             RedisCacheDto rcd = this.getFromRedisAndConvert(jedis, key);
-            V result;
             if (rcd == null || System.currentTimeMillis() > rcd.getEt()) {
                 logger.info("从redis获取的数据,为空或者失效,从下一层获取数据, key = " + key);
                 result = nextHandler.handle(context);
@@ -63,7 +94,7 @@ public class RedisCacheHandler implements CacheHandler {
                 }
                 rcd = new RedisCacheDto();
                 rcd.setKey(key);
-                rcd.setJson(JsonUtils.beanToJson(result));
+                rcd.setJson(JsonUtil.beanToJson(result));
                 parseAndFillValueType(rcd, result);
                 rcd.setEt(System.currentTimeMillis() + context.getCacheAttribute().getRedisExpiredTime());
             } else {
@@ -71,19 +102,20 @@ public class RedisCacheHandler implements CacheHandler {
             }
             rcd.getHt().incrementAndGet();
             rcd.setVal(null);
-            jedis.set(key, JsonUtils.beanToJson(rcd));
+            jedis.set(key, JsonUtil.beanToJson(rcd)); // 更新计数
             rcd.setVal(result);
             return (V) rcd.getVal();
-        } catch (Throwable t) {
-            logger.error("RedisCacheHandlerError, the context is " + JsonUtils.beanToJson(context), t);
-            t.printStackTrace();
+        } catch (Throwable e) {
+            logger.error("RedisCacheHandler.cache, the context is " + JsonUtil.beanToJson(context), e);
+            return result;
         } finally {
             try {
-                sedisClient.returnResource(jedis);
-            } catch (Throwable t) {
+                if (jedis != null) {
+                    sedisClient.returnResource(jedis);
+                }
+            } catch (Throwable e) {
             }
         }
-        return null;
     }
 
     /**
@@ -100,14 +132,14 @@ public class RedisCacheHandler implements CacheHandler {
             if (rcdJson == null || rcdJson.trim().isEmpty()) {
                 return null;
             }
-            rcd = JsonUtils.jsonToBean(rcdJson, RedisCacheDto.class);
+            rcd = JsonUtil.jsonToBean(rcdJson, RedisCacheDto.class);
             final int type = rcd.getType();
             TypeFactory typeFactory = TypeFactory.defaultInstance();
             String json = rcd.getJson();
             JavaType javaType = null;
             if (type == 0) { // element
                 javaType = typeFactory.constructType(rcd.getEc());
-                rcd.setVal((V) JsonUtils.jsonToBean(json, javaType));
+                rcd.setVal((V) JsonUtil.jsonToBean(json, javaType));
                 return rcd;
             } else if (type == 1) { // array
                 javaType = typeFactory.constructArrayType(rcd.getEc());
@@ -119,7 +151,7 @@ public class RedisCacheHandler implements CacheHandler {
             if (json.length() <= 0 || javaType == null) {
                 return rcd;
             }
-            rcd.setVal((V) JsonUtils.jsonToBean(json, javaType));
+            rcd.setVal((V) JsonUtil.jsonToBean(json, javaType));
         } catch (Throwable t) {
             rcd = null;
             logger.error("RedisCacheHandlerConvertError, the key is " + key, t);

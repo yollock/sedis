@@ -12,4 +12,13 @@ import java.lang.annotation.Target;
 public @interface CacheExpire {
     // 缓存key
     String key() default "";
+
+    // 是否失效内存缓存，默认关闭
+    boolean memoryEnable() default true;
+
+    // 是否失效Redis缓存，默认关闭
+    boolean redisEnable() default true;
+
+    // 是否失效数据库内存，默认开启
+    boolean dataSourceEnable() default true;
 }

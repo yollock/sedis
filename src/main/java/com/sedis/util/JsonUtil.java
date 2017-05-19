@@ -14,7 +14,7 @@ import org.codehaus.jackson.type.TypeReference;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 
-public abstract class JsonUtils {
+public abstract class JsonUtil {
 
     private static ObjectMapper objectMapper = null;
 
