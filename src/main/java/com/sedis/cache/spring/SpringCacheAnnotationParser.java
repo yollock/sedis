@@ -19,7 +19,7 @@ public class SpringCacheAnnotationParser implements CacheAnnotationParser {
             return parseCacheAnnotation(cache, SedisConst.CACHE);
         }
         CacheExpire cacheExpire = AnnotationUtils.getAnnotation(ae, CacheExpire.class);
-        if (cache != null) {
+        if (cacheExpire != null) {
             return parseCacheExpireAnnotation(cacheExpire, SedisConst.CACHE_EXPIRE);
         }
         return null;

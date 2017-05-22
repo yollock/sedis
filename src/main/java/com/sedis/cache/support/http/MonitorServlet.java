@@ -17,7 +17,7 @@ public class MonitorServlet extends ResourceServlet {
     private SedisStatService statService = SedisStatService.instance();
 
     public MonitorServlet() {
-        super("support/http/resources");
+        super("support/http/resource");
     }
 
     public void init() throws ServletException {

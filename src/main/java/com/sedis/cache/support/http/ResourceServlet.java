@@ -14,6 +14,7 @@ import java.io.IOException;
 
 /**
  * Created by yollock on 2017/5/19.
+ * 参考alibaba.druid的监控实现, 感谢开源
  */
 public abstract class ResourceServlet extends HttpServlet {
 
@@ -124,7 +125,6 @@ public abstract class ResourceServlet extends HttpServlet {
             if (bytes != null) {
                 response.getOutputStream().write(bytes);
             }
-
             return;
         }
 

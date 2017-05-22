@@ -11,7 +11,7 @@ import java.util.Set;
 /**
  * 此类负责存储标注了@Cache的类和方法配置信息
  *
- * @AnnotationTransactionAttributeSource
+ * @AnnotationCacheAttributeSource
  */
 public class AnnotationCacheAttributeSource extends AbstractFallbackCacheAttributeSource {
 
@@ -42,16 +42,16 @@ public class AnnotationCacheAttributeSource extends AbstractFallbackCacheAttribu
     }
 
     @Override
-    protected CacheAttribute findTransactionAttribute(Method method) {
-        return determineTransactionAttribute(method);
+    protected CacheAttribute findCacheAttribute(Method method) {
+        return determineCacheAttribute(method);
     }
 
     @Override
-    protected CacheAttribute findTransactionAttribute(Class<?> clazz) {
-        return determineTransactionAttribute(clazz);
+    protected CacheAttribute findCacheAttribute(Class<?> clazz) {
+        return determineCacheAttribute(clazz);
     }
 
-    protected CacheAttribute determineTransactionAttribute(AnnotatedElement ae) {
+    protected CacheAttribute determineCacheAttribute(AnnotatedElement ae) {
         for (CacheAnnotationParser annotationParser : this.annotationParsers) {
             CacheAttribute attr = annotationParser.parseCacheAnnotation(ae);
             if (attr != null) {

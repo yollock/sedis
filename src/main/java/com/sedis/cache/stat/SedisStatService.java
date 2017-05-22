@@ -1,17 +1,31 @@
 package com.sedis.cache.stat;
 
+import com.sedis.cache.spring.AnnotationCacheAttributeSource;
+import com.sedis.cache.spring.BeanFactoryCacheAttributeSourceAdvisor;
+import com.sedis.cache.spring.CacheAttribute;
+import com.sedis.cache.spring.CacheAttributeSource;
+import com.sedis.cache.spring.CacheInterceptor;
 import com.sedis.util.JsonUtil;
 import com.sedis.util.StringUtil;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
  * Created by yollock on 2017/5/19.
+ * ---------- query --------------
+ * 访问所有的缓存注解配置 :: AnnotationCacheAttributeSource, 从IOC容器中获取
+ * 访问MemoryCacheHandler的缓存情况 :: 根据注解构造key,然后从CacheInterceptor中获取Pileline,然后获取MemoryCacheHandler实例
+ * 访问redis :: 获取CacheInterceptor实例, 就可以获取SedisClient
+ * ------------ update ------------
+ * 更新注解配置 ::
+ * ------------ delete ------------
+ * 删除注解配置 ::
  */
 public class SedisStatService implements StatMBean {
-
 
     private final static SedisStatService instance = new SedisStatService();
     private boolean resetEnable;
@@ -32,19 +46,38 @@ public class SedisStatService implements StatMBean {
     @Override
     public String service(String url) {
         Map<String, String> parameters = getParameters(url);
-
+        if (url.startsWith("/cacheAttribute.json")) {
+            return result(SUCCESS, cacheAttribute());
+        }
         return result(ERROR, "Do not support this request, please contact with administrator.");
-
     }
 
-    public static String result(int resultCode, Object content) {
+    private List<CacheAttribute> cacheAttribute() {
+        final AnnotationCacheAttributeSource attributeSource = (AnnotationCacheAttributeSource) cacheInterceptor().getCacheAttributeSource();
+        final Map<Object, CacheAttribute> cacheAttributeMap = attributeSource.getAttributeCache();
+
+        List<CacheAttribute> cacheAttributes = new ArrayList<CacheAttribute>(cacheAttributeMap.size());
+        for (CacheAttribute cacheAttribute : cacheAttributeMap.values()) {
+            if (StringUtil.isEmpty(cacheAttribute.getKey())) {
+                continue;
+            }
+            cacheAttributes.add(cacheAttribute);
+        }
+        return cacheAttributes;
+    }
+
+    private CacheInterceptor cacheInterceptor() {
+        return (CacheInterceptor) CacheInterceptor.applicationContext.getBean("com.sedis.cache.spring.CacheInterceptor#0");
+    }
+
+    private static String result(int resultCode, Object content) {
         Map<String, Object> dataMap = new LinkedHashMap<String, Object>();
-        dataMap.put("resultCode", resultCode);
-        dataMap.put("content", content);
+        dataMap.put("ResultCode", resultCode);
+        dataMap.put("Content", content);
         return JsonUtil.beanToJson(dataMap);
     }
 
-    public static Map<String, String> getParameters(String url) {
+    private static Map<String, String> getParameters(String url) {
         if (url == null || (url = url.trim()).length() == 0) {
             return Collections.<String, String>emptyMap();
         }

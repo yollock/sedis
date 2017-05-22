@@ -11,6 +11,8 @@ public interface WaybillService {
 
     Waybill findById(String code);
 
+    int updateById(String code);
+
     List<Waybill> findListById(String code);
 
     Waybill[] findArrayById(String code);

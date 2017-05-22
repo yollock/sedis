@@ -1,0 +1,131 @@
+<!doctype html>
+<html>
+<head>
+    <title>Cache DataSourceStat</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf8"/>
+    <link href='css/bootstrap.min.css' rel="stylesheet"/>
+    <link href="css/style.css" type="text/css" rel="stylesheet"/>
+    <script src="js/doT.js" type="text/javascript" charset="utf8"></script>
+    <script type="text/javascript" src="js/jquery.min.js"></script>
+    <script type="text/javascript" src="js/bootstrap.min.js"></script>
+    <script src="js/lang.js" type="text/javascript" charset="utf8"></script>
+    <script src="js/common.js" type="text/javascript" charset="utf8"></script>
+</head>
+<body>
+
+<div class="container-fluid">
+    <div class="row-fluid">
+        <div class="span12">
+            <h3>
+                Web URI Stat
+                <a href="cacheAttribute.json" target="_blank">View JSON API</a>
+                <span class="pull-right" style="font-size: 16px; margin-right: 20px;">
+                    <label langkey="RefreshPeriod" class="lang" style="display: inline;" for="refreshSecondsSelect">Refresh Period</label>
+                    <select id="refreshSecondsSelect" class="refresh-seconds-select btn" style="width:80px;" onchange="javascript:cache.cacheAttribute.refreshSeconds=parseInt(this.options[this.options.selectedIndex].value);">
+                        <option value="5" selected="selected">5s</option>
+                        <option value="10">10s</option>
+                        <option value="20">20s</option>
+                        <option value="30">30s</option>
+                        <option value="60">60s</option>
+                    </select>
+                    <a id="btnSuspendRefresh" langkey="SuspendRefresh" class="btn btn-primary lang" href="javascript:cache.cacheAttribute.switchSuspendRefresh();">Suspend Refresh</a>
+                </span>
+            </h3>
+            <table id="dataTable" class="table table-bordered table-striped responsive-utilities">
+                <thead>
+                <tr>
+                    <th>N</th>
+                    <th><a id="th-key" class="lang" langKey="key">key</a></th>
+                    <th><a id="th-type" class="lang" langKey="type">type</a></th>
+                    <th><a id="th-memoryEnable" class="lang" langKey="memoryEnable">memoryEnable</a></th>
+                    <th><a id="th-memoryExpiredTime" class="lang" langKey="memoryExpiredTime">memoryExpiredTime</a></th>
+                    <th><a id="th-redisEnable" class="lang" langKey="redisEnable">redisEnable</a></th>
+                    <th><a id="th-redisExpiredTime" class="lang" langKey="redisExpiredTime">redisExpiredTime</a></th>
+                    <th><a id="th-dataSourceEnable" class="lang" langKey="dataSourceEnable">dataSourceEnable</a></th>
+                </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    $.namespace("cache.cacheAttribute");
+    cache.cacheAttribute = function () {
+        return {
+            init: function () {
+                $("#dataTable th a").click(function (obj) {
+//                    cache.common.setOrderBy(obj.target.id.substring(3))
+                })
+                cache.common.buildHead(1);
+                cache.common.ajaxuri = 'cacheAttribute.json?';
+                cache.common.handleCallback = cache.cacheAttribute.handleAjaxResult;
+                cache.common.setOrderBy("key");
+                cache.cacheAttribute.controlRefresh();
+            },
+            controlRefresh: function () {
+//                var FIVE = 5;
+//                if (!cache.cacheAttribute.refreshSeconds) {
+//                    cache.cacheAttribute.refreshSeconds = FIVE;
+//                }
+//                if (!cache.cacheAttribute.suspendedSeconds) {
+//                    cache.cacheAttribute.suspendedSeconds = 0;
+//                }
+//                cache.cacheAttribute.suspendedSeconds += FIVE;
+//                if (!cache.cacheAttribute.disableAutoRefresh) {
+//                    if (cache.cacheAttribute.suspendedSeconds >= cache.cacheAttribute.refreshSeconds) {
+//                        cache.cacheAttribute.suspendedSeconds = 0;
+//                        cache.common.ajaxRequestForBasicInfo();
+//                    }
+//                }
+//                setTimeout(cache.cacheAttribute.controlRefresh, FIVE * 1000);
+            },
+            switchSuspendRefresh: function () {
+                cache.cacheAttribute.disableAutoRefresh = !cache.cacheAttribute.disableAutoRefresh;
+                if (cache.cacheAttribute.disableAutoRefresh) {
+                    $("#btnSuspendRefresh").addClass("btn-warning").removeClass("btn-primary");
+                } else {
+                    $("#btnSuspendRefresh").addClass("btn-primary").removeClass("btn-warning");
+                }
+            },
+            disableAutoRefresh: false,
+            refreshSeconds: 5,
+            suspendedSeconds: 0,
+
+            handleAjaxResult: function (data) {
+                var statList = data.Content;
+                if (statList == null) return;
+
+                var sqlStatTable = document.getElementById("dataTable");
+                while (sqlStatTable.rows.length > 1) {
+                    sqlStatTable.deleteRow(1);
+                }
+
+                var html = "";
+                for (var i = 0; i < statList.length; i++) {
+                    var stat = statList[i];
+                    var newRow = sqlStatTable.insertRow(-1);
+                    html += "<tr>";
+                    html += "<td>" + (i + 1) + "</td>";
+                    html += "<td>" + '<a target="_blank" href="cacheAttribute-detail.html?uri=' + encodeURI(stat.URI) + '">' + cache.common.subSqlString(stat.URI, 64) + '</a>' + "</td>";
+                    html += "<td>" + replace(stat.key) + "</td>";
+                    html += "<td>" + replace(stat.type) + "</td>";
+                    html += "<td>" + replace(stat.memoryEnable) + "</td>";
+                    html += "<td>" + replace(stat.memoryExpiredTime) + "</td>";
+                    html += "<td>" + replace(stat.redisEnable) + "</td>";
+                    html += "<td>" + replace(stat.redisExpiredTime) + "</td>";
+                    html += "<td>" + replace(stat.dataSourceEnable) + "</td>";
+                    html += "</tr>";
+                }
+                $("#dataTable tbody").html(html);
+                cache.common.stripes();
+            }
+        }
+    }();
+
+    $(document).ready(function () {
+        cache.cacheAttribute.init();
+    });
+</script>
+</body>
+</html>

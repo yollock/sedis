@@ -1,6 +1,7 @@
 package com.sedis.test;
 
 import com.sedis.cache.annotation.Cache;
+import com.sedis.cache.annotation.CacheExpire;
 
 import java.util.*;
 import java.util.concurrent.locks.LockSupport;
@@ -22,6 +23,12 @@ public class WaybillServiceImpl implements WaybillService {
         waybills.add(new Waybill(code, 1));
         waybills.add(new Waybill(code, 2));
         return waybills;
+    }
+
+    @Override
+    @CacheExpire(key = "waybill@args0")
+    public int updateById(String code) {
+        return 1;
     }
 
     @Override

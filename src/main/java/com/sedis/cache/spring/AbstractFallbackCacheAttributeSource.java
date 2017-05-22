@@ -27,8 +27,8 @@ public abstract class AbstractFallbackCacheAttributeSource implements CacheAttri
         Object cacheKey = getCacheKey(method, targetClass);
         Object cached = this.attributeCache.get(cacheKey);
         if (cached != null) {
-            // Value will either be canonical value indicating there is no transaction attribute,
-            // or an actual transaction attribute.
+            // Value will either be canonical value indicating there is no Cache attribute,
+            // or an actual Cache attribute.
             if (cached == NULL_CACHE_ATTRIBUTE) {
                 return null;
             } else {
@@ -36,13 +36,13 @@ public abstract class AbstractFallbackCacheAttributeSource implements CacheAttri
             }
         } else {
             // We need to work it out.
-            CacheAttribute txAtt = computeTransactionAttribute(method, targetClass);
+            CacheAttribute txAtt = computeCacheAttribute(method, targetClass);
             // Put it in the CACHE.
             if (txAtt == null) {
                 this.attributeCache.put(cacheKey, NULL_CACHE_ATTRIBUTE);
             } else {
                 if (logger.isDebugEnabled()) {
-                    logger.debug("Adding transactional method '" + method.getName() + "' with attribute: " + txAtt);
+                    logger.debug("Adding cache method '" + method.getName() + "' with attribute: " + txAtt);
                 }
                 this.attributeCache.put(cacheKey, txAtt);
             }
@@ -54,7 +54,7 @@ public abstract class AbstractFallbackCacheAttributeSource implements CacheAttri
         return new DefaultCacheKey(method, targetClass);
     }
 
-    private CacheAttribute computeTransactionAttribute(Method method, Class<?> targetClass) {
+    private CacheAttribute computeCacheAttribute(Method method, Class<?> targetClass) {
         // Don't allow no-public methods as required.
         if (allowPublicMethodsOnly() && !Modifier.isPublic(method.getModifiers())) {
             return null;
@@ -69,32 +69,32 @@ public abstract class AbstractFallbackCacheAttributeSource implements CacheAttri
         specificMethod = BridgeMethodResolver.findBridgedMethod(specificMethod);
 
         // First try is the method in the target class.
-        CacheAttribute txAtt = findTransactionAttribute(specificMethod);
+        CacheAttribute txAtt = findCacheAttribute(specificMethod);
         if (txAtt != null) {
             return txAtt;
         }
 
-        // Second try is the transaction attribute on the target class.
-        txAtt = findTransactionAttribute(specificMethod.getDeclaringClass());
+        // Second try is the Cache attribute on the target class.
+        txAtt = findCacheAttribute(specificMethod.getDeclaringClass());
         if (txAtt != null) {
             return txAtt;
         }
 
         if (specificMethod != method) {
             // Fallback is to look at the original method.
-            txAtt = findTransactionAttribute(method);
+            txAtt = findCacheAttribute(method);
             if (txAtt != null) {
                 return txAtt;
             }
             // Last fallback is the class of the original method.
-            return findTransactionAttribute(method.getDeclaringClass());
+            return findCacheAttribute(method.getDeclaringClass());
         }
         return null;
     }
 
-    protected abstract CacheAttribute findTransactionAttribute(Method specificMethod);
+    protected abstract CacheAttribute findCacheAttribute(Method specificMethod);
 
-    protected abstract CacheAttribute findTransactionAttribute(Class<?> clazz);
+    protected abstract CacheAttribute findCacheAttribute(Class<?> clazz);
 
     protected boolean allowPublicMethodsOnly() {
         return false;
@@ -129,5 +129,7 @@ public abstract class AbstractFallbackCacheAttributeSource implements CacheAttri
         }
     }
 
-
+    public Map<Object, CacheAttribute> getAttributeCache() {
+        return attributeCache;
+    }
 }

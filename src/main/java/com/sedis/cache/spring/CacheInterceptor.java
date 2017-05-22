@@ -6,6 +6,9 @@ import com.sedis.cache.pipeline.DefaultCachePipeline;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.springframework.aop.support.AopUtils;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import redis.clients.jedis.ShardedJedisPool;
 
 import java.io.Serializable;
@@ -15,7 +18,7 @@ import java.util.concurrent.ConcurrentMap;
 /**
  * 执行增强的拦截器,从Advisor调用getAdvice()获取
  */
-public class CacheInterceptor implements MethodInterceptor, Serializable {
+public class CacheInterceptor implements MethodInterceptor, ApplicationContextAware, Serializable {
 
     private int memoryCount;
     private ShardedJedisPool sedisClient;
@@ -26,9 +29,16 @@ public class CacheInterceptor implements MethodInterceptor, Serializable {
     private long maxPeriod;
     private long delay;
 
+    public static ApplicationContext applicationContext;
+
     private final ConcurrentMap<CacheAttribute, CachePipeline> pipelines = new ConcurrentHashMap<CacheAttribute, CachePipeline>();
 
     public CacheInterceptor() {
+    }
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        CacheInterceptor.applicationContext = applicationContext;
     }
 
     @Override
@@ -99,5 +109,9 @@ public class CacheInterceptor implements MethodInterceptor, Serializable {
 
     public long getDelay() {
         return delay;
+    }
+
+    public CacheAttributeSource getCacheAttributeSource() {
+        return cacheAttributeSource;
     }
 }
