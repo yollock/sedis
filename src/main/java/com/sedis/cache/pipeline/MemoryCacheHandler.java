@@ -43,6 +43,8 @@ public class MemoryCacheHandler implements CacheHandler {
             case SedisConst.CACHE_EXPIRE:
                 cache.remove(context.getKey());
                 return nextHandler.handle(context);
+            case SedisConst.CACHE_UPDATE:
+                return nextHandler.handle(context);
             default:
                 return null;
         }

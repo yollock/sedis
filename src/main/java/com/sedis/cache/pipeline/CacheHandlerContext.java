@@ -1,6 +1,7 @@
 package com.sedis.cache.pipeline;
 
 import com.sedis.cache.spring.CacheAttribute;
+import com.sedis.cache.spring.CacheInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 
 import java.util.List;
@@ -16,6 +17,7 @@ public class CacheHandlerContext {
     public static int REDIS_HANDLER = 2; // 10
     public static int DATASOURCE_HANDLER = 4; // 100
 
+    private CacheInterceptor interceptor;
     private CacheAttribute cacheAttribute;
     private MethodInvocation invocation;
     private String key;
@@ -31,6 +33,22 @@ public class CacheHandlerContext {
         this.invocation = invocation;
         this.key = key;
         this.handlerFlag = handlerFlag;
+    }
+
+    public CacheHandlerContext(CacheInterceptor interceptor, CacheAttribute cacheAttribute, MethodInvocation invocation, String key, int handlerFlag) {
+        this.interceptor = interceptor;
+        this.cacheAttribute = cacheAttribute;
+        this.invocation = invocation;
+        this.key = key;
+        this.handlerFlag = handlerFlag;
+    }
+
+    public CacheInterceptor getInterceptor() {
+        return interceptor;
+    }
+
+    public void setInterceptor(CacheInterceptor interceptor) {
+        this.interceptor = interceptor;
     }
 
     public List<CacheHandler> getHandlers() {

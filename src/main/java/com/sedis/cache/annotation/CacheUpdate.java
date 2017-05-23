@@ -8,7 +8,8 @@ import java.lang.annotation.Target;
 
 /**
  * 实现方案:
- * 1.在拦截器中保存
+ * 1.在拦截器中保存实现查询的MethodInvocation
+ * 2.在pipeline更新(datasource是更新, redis和memory是删除)后, 发布事件, 调用查询的MethodInvocation
  */
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)

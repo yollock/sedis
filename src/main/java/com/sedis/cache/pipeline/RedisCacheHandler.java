@@ -46,6 +46,8 @@ public class RedisCacheHandler implements CacheHandler {
                 return cache(context, nextHandler);
             case SedisConst.CACHE_EXPIRE:
                 return cacheExpire(context, nextHandler);
+            case SedisConst.CACHE_UPDATE:
+                return nextHandler.handle(context);
             default:
                 return null;
         }

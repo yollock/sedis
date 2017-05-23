@@ -8,11 +8,11 @@ import org.aopalliance.intercept.MethodInvocation;
 /**
  * Created by yollock on 2016/9/13.
  */
-public class CacheAttributeUtils {
+public abstract class CacheAttrUtil {
 
     private static CacheKeyGenerator keyGenerator = new DefaultCacheKeyGenerator();
 
-    private CacheAttributeUtils() {
+    private CacheAttrUtil() {
     }
 
     public static int getHandlerFlag(CacheAttribute cacheAttribute) {
@@ -36,4 +36,16 @@ public class CacheAttributeUtils {
                 invocation.getThis(), //
                 cacheAttr.getKey());
     }
+
+    public static CacheAttribute copy(CacheAttribute cacheAttr) {
+        return new CacheAttribute(cacheAttr.getKey(), //
+                cacheAttr.getType(), //
+                cacheAttr.getMemoryEnable(), //
+                cacheAttr.getMemoryExpiredTime(), //
+                cacheAttr.redisEnable, //
+                cacheAttr.getRedisExpiredTime(), //
+                cacheAttr.getDataSourceEnable() //
+        );
+    }
+
 }
