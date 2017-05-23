@@ -9,9 +9,11 @@ import com.sedis.util.StringUtil;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by yollock on 2017/5/19.
@@ -52,16 +54,17 @@ public class SedisStatService implements StatMBean {
     }
 
     private List<CacheAttribute> cacheAttribute() {
-        final AnnotationCacheAttributeSource attributeSource = (AnnotationCacheAttributeSource) cacheInterceptor().getCacheAttributeSource();
-        final Map<Object, CacheAttribute> cacheAttributeMap = attributeSource.getAttributeCache();
-
-        List<CacheAttribute> cacheAttributes = new ArrayList<CacheAttribute>(cacheAttributeMap.size());
+        final Map<Object, CacheAttribute> cacheAttributeMap = ((AnnotationCacheAttributeSource) cacheInterceptor() //
+                .getCacheAttributeSource()).getAttributeCache();
+        Set<CacheAttribute> cacheAttributeSet = new HashSet<CacheAttribute>();
+        List<CacheAttribute> cacheAttributes = new ArrayList<CacheAttribute>();
         for (CacheAttribute cacheAttribute : cacheAttributeMap.values()) {
             if (StringUtil.isEmpty(cacheAttribute.getKey())) {
                 continue;
             }
-            cacheAttributes.add(cacheAttribute);
+            cacheAttributeSet.add(cacheAttribute);
         }
+        cacheAttributes.addAll(cacheAttributeSet);
         return cacheAttributes;
     }
 

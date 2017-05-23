@@ -109,6 +109,9 @@ public class CacheAttribute {
         return this;
     }
 
+    /**
+     * 尽可能用少的字段做比较, 建议开发人员使用[方法名 + 注解]作为一组(增删改查)缓存的隔离
+     */
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -116,8 +119,7 @@ public class CacheAttribute {
 
         CacheAttribute that = (CacheAttribute) o;
 
-        return key.equals(that.key);
-
+        return key.equals(that.key) && type == that.getType();
     }
 
     @Override

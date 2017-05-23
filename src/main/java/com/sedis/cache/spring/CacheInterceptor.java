@@ -51,18 +51,19 @@ public class CacheInterceptor implements MethodInterceptor, ApplicationContextAw
         }
         // 从CacheAttribute获取需要参与的handler的值,如果不合法,返回 0
         int handlerFlag = CacheAttributeUtils.getHandlerFlag(cacheAttr);
-        String key = CacheAttributeUtils.getKey(cacheAttr, invocation);
-
         if (handlerFlag == CacheHandlerContext.BOTTOM_HANDLER) {
             return invocation.proceed();
         }
 
+        // uniqueKey与CacheAttribute的key不一样,
+        // key是模版, uniqueKey则是根据模版key和具体的参数构建而成
+        String uniqueKey = CacheAttributeUtils.getUniqueKey(cacheAttr, invocation);
         CachePipeline pipeline = pipelines.get(cacheAttr);
         if (pipeline == null) {
             pipelines.put(cacheAttr, new DefaultCachePipeline(this));
             pipeline = pipelines.get(cacheAttr);
         }
-        return pipeline.handle(new CacheHandlerContext(cacheAttr, invocation, key, handlerFlag));
+        return pipeline.handle(new CacheHandlerContext(cacheAttr, invocation, uniqueKey, handlerFlag));
     }
 
     // setter

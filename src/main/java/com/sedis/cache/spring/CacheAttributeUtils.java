@@ -29,7 +29,7 @@ public class CacheAttributeUtils {
         return handlerFlag;
     }
 
-    public static String getKey(CacheAttribute cacheAttr, MethodInvocation invocation) {
+    public static String getUniqueKey(CacheAttribute cacheAttr, MethodInvocation invocation) {
         // Method method, Object[] args, Object target, String key
         return keyGenerator.generateKey(invocation.getMethod(), //
                 invocation.getArguments(),//

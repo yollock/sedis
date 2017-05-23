@@ -6,10 +6,14 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * 实现方案:
+ * 1.在拦截器中保存
+ */
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-public @interface CacheExpire {
+public @interface CacheUpdate {
     // 缓存key
     String key() default "";
 
