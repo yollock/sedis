@@ -107,14 +107,13 @@
                     var newRow = sqlStatTable.insertRow(-1);
                     html += "<tr>";
                     html += "<td>" + (i + 1) + "</td>";
-                    html += "<td>" + '<a target="_blank" href="cacheAttribute-detail.html?uri=' + encodeURI(stat.URI) + '">' + cache.common.subSqlString(stat.URI, 64) + '</a>' + "</td>";
                     html += "<td>" + replace(stat.key) + "</td>";
                     html += "<td>" + replace(stat.type) + "</td>";
-                    html += "<td>" + replace(stat.memoryEnable) + "</td>";
+                    html += "<td>" + stat.memoryEnable + "</td>";
                     html += "<td>" + replace(stat.memoryExpiredTime) + "</td>";
-                    html += "<td>" + replace(stat.redisEnable) + "</td>";
+                    html += "<td>" + stat.redisEnable + "</td>";
                     html += "<td>" + replace(stat.redisExpiredTime) + "</td>";
-                    html += "<td>" + replace(stat.dataSourceEnable) + "</td>";
+                    html += "<td>" + stat.dataSourceEnable + "</td>";
                     html += "</tr>";
                 }
                 $("#dataTable tbody").html(html);

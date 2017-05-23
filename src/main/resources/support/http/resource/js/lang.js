@@ -17,9 +17,9 @@ cache.lang = function () {
 
         'key': ['cache key', '缓存注解的key'],
         'type': ['cache type', '缓存注解的类型'],
-        'memoryEnable': ['memoryEnable', '是否缓存到内存'],
+        'memoryEnable': ['memoryEnable', '是否支持内存'],
         'memoryExpiredTime': ['memoryExpiredTime', '内存缓存失效时间'],
-        'redisEnable': ['redisEnable', '是否缓存到Redis'],
+        'redisEnable': ['redisEnable', '是否支持Redis'],
         'redisExpiredTime': ['redisExpiredTime', 'Redis缓存失效时间'],
         'dataSourceEnable': ['dataSourceEnable', '数据源是否开启'],
 

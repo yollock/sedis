@@ -1,11 +1,10 @@
 package com.sedis.cache.stat;
 
 import com.sedis.cache.spring.AnnotationCacheAttributeSource;
-import com.sedis.cache.spring.BeanFactoryCacheAttributeSourceAdvisor;
 import com.sedis.cache.spring.CacheAttribute;
-import com.sedis.cache.spring.CacheAttributeSource;
 import com.sedis.cache.spring.CacheInterceptor;
 import com.sedis.util.JsonUtil;
+import com.sedis.util.MapComparator;
 import com.sedis.util.StringUtil;
 
 import java.util.ArrayList;
@@ -75,6 +74,57 @@ public class SedisStatService implements StatMBean {
         dataMap.put("ResultCode", resultCode);
         dataMap.put("Content", content);
         return JsonUtil.beanToJson(dataMap);
+    }
+
+    private List<Map<String, Object>> comparatorOrderBy(List<Map<String, Object>> array, Map<String, String> parameters) {
+        // when open the stat page before executing some sql
+        if (array == null || array.isEmpty()) {
+            return null;
+        }
+
+        // when parameters is null
+        String orderBy, orderType = null;
+        Integer page = DEFAULT_PAGE;
+        Integer perPageCount = DEFAULT_PER_PAGE_COUNT;
+        if (parameters == null) {
+            orderBy = DEFAULT_ORDERBY;
+            orderType = DEFAULT_ORDER_TYPE;
+            page = DEFAULT_PAGE;
+            perPageCount = DEFAULT_PER_PAGE_COUNT;
+        } else {
+            orderBy = parameters.get("orderBy");
+            orderType = parameters.get("orderType");
+            String pageParam = parameters.get("page");
+            if (pageParam != null && pageParam.length() != 0) {
+                page = Integer.parseInt(pageParam);
+            }
+            String pageCountParam = parameters.get("perPageCount");
+            if (pageCountParam != null && pageCountParam.length() > 0) {
+                perPageCount = Integer.parseInt(pageCountParam);
+            }
+        }
+
+        // others,such as order
+        orderBy = orderBy == null ? DEFAULT_ORDERBY : orderBy;
+        orderType = orderType == null ? DEFAULT_ORDER_TYPE : orderType;
+
+        if (!ORDER_TYPE_DESC.equals(orderType)) {
+            orderType = ORDER_TYPE_ASC;
+        }
+
+        // orderby the statData array
+        if (orderBy.trim().length() != 0) {
+            Collections.sort(array, new MapComparator<String, Object>(orderBy, ORDER_TYPE_DESC.equals(orderType)));
+        }
+
+        // page
+        int fromIndex = (page - 1) * perPageCount;
+        int toIndex = page * perPageCount;
+        if (toIndex > array.size()) {
+            toIndex = array.size();
+        }
+
+        return array.subList(fromIndex, toIndex);
     }
 
     private static Map<String, String> getParameters(String url) {

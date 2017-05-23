@@ -1,9 +1,14 @@
 package com.sedis.util;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 /**
  * Created by yollock on 2017/5/19.
  */
 public abstract class StringUtil {
+
+    private final static Log logger = LogFactory.getLog(StringUtil.class);
 
     public static boolean isEmpty(CharSequence value) {
         if (value == null || value.length() == 0) {
@@ -34,6 +39,35 @@ public abstract class StringUtil {
 
         return src.substring(indexFrom, indexTo);
 
+    }
+
+    /**
+     * Example: subString("12345","1","4")=23
+     *
+     * @param src
+     * @param start
+     * @param to
+     * @return
+     */
+    public static Integer subStringToInteger(String src, String start, String to) {
+        return stringToInteger(subString(src, start, to));
+    }
+
+    public static Integer stringToInteger(String in) {
+        if (in == null) {
+            return null;
+        }
+        in = in.trim();
+        if (in.length() == 0) {
+            return null;
+        }
+
+        try {
+            return Integer.parseInt(in);
+        } catch (NumberFormatException e) {
+            logger.warn("stringToInteger fail,string=" + in, e);
+            return null;
+        }
     }
 
     private StringUtil() {
