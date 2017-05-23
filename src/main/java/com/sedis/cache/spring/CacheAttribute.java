@@ -126,4 +126,9 @@ public class CacheAttribute {
     public int hashCode() {
         return key.hashCode();
     }
+
+    @Override
+    public String toString() {
+        return "CacheAttribute{" + "key='" + key + '\'' + ", type=" + type + ", memoryEnable=" + memoryEnable + ", memoryExpiredTime=" + memoryExpiredTime + ", redisEnable=" + redisEnable + ", redisExpiredTime=" + redisExpiredTime + ", dataSourceEnable=" + dataSourceEnable + '}';
+    }
 }

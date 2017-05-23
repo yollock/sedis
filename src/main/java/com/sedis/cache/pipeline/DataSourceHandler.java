@@ -31,14 +31,15 @@ public class DataSourceHandler implements CacheHandler {
 
     @Override
     public <V> V handle(CacheHandlerContext context) {
-        if (invocation == null) {
-            logger.warn("目标方法为null,获取原始数据失败 " + JsonUtil.beanToJson(context));
-            return null;
-        }
+        logger.debug("DataSourceHandler.handle context: " + context);
         try {
             switch (context.getCacheAttribute().getType()) {
                 case SedisConst.CACHE:
                 case SedisConst.CACHE_EXPIRE:
+                    if (invocation == null) {
+                        logger.warn("MethodInvocation is null, context is: " + JsonUtil.beanToJson(context));
+                        return null;
+                    }
                     return (V) invocation.proceed();
                 case SedisConst.CACHE_UPDATE:
                     // 更新数据, 同时构建任务执行删除和查询操作, 实现缓存更新

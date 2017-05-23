@@ -1,9 +1,12 @@
 package com.sedis.cache.spring;
 
+import com.google.common.base.Splitter;
 import com.sedis.cache.keytool.CacheKeyGenerator;
 import com.sedis.cache.keytool.DefaultCacheKeyGenerator;
 import com.sedis.cache.pipeline.CacheHandlerContext;
 import org.aopalliance.intercept.MethodInvocation;
+
+import java.util.List;
 
 /**
  * Created by yollock on 2016/9/13.
@@ -47,5 +50,21 @@ public abstract class CacheAttrUtil {
                 cacheAttr.getDataSourceEnable() //
         );
     }
+
+    public static String[] params(String uniqueKey) {
+        List<String> temp = Splitter.on("@").splitToList(uniqueKey);
+        String[] params = new String[temp.size() - 1];
+        boolean isFirst = true;
+        for (int i = 0, len = temp.size(); i < len; i++) {
+            if (isFirst) {
+                isFirst = true;
+                continue;
+            } else {
+                params[i - 1] = temp.get(i);
+            }
+        }
+        return params;
+    }
+
 
 }

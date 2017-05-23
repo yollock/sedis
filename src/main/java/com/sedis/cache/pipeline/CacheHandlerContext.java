@@ -90,4 +90,9 @@ public class CacheHandlerContext {
     public void setHandlers(List<CacheHandler> handlers) {
         this.handlers = handlers;
     }
+
+    @Override
+    public String toString() {
+        return "CacheHandlerContext{" + "cacheAttribute=" + cacheAttribute + ", invocation=" + invocation + ", key='" + key + '\'' + ", handlerFlag=" + handlerFlag + '}';
+    }
 }

@@ -5,6 +5,7 @@ import com.sedis.cache.pipeline.CacheHandlerContext;
 import com.sedis.cache.pipeline.CachePipeline;
 import com.sedis.cache.pipeline.DefaultCachePipeline;
 import com.sedis.util.CollectionUtil;
+import com.sedis.util.JsonUtil;
 import com.sedis.util.StringUtil;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
@@ -12,6 +13,8 @@ import org.apache.log4j.Logger;
 import org.springframework.aop.framework.ReflectiveMethodInvocation;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import redis.clients.jedis.ShardedJedisPool;
@@ -26,7 +29,7 @@ import java.util.concurrent.Executors;
 /**
  * 执行增强的拦截器,从Advisor调用getAdvice()获取
  */
-public class CacheInterceptor implements MethodInterceptor, ApplicationContextAware, Serializable {
+public class CacheInterceptor implements MethodInterceptor, ApplicationContextAware, InitializingBean, Serializable {
 
     private static Logger logger = Logger.getLogger(CacheInterceptor.class);
 
@@ -52,6 +55,10 @@ public class CacheInterceptor implements MethodInterceptor, ApplicationContextAw
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         CacheInterceptor.applicationContext = applicationContext;
+    }
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
     }
 
     @Override
@@ -82,7 +89,7 @@ public class CacheInterceptor implements MethodInterceptor, ApplicationContextAw
         return pipeline.handle(new CacheHandlerContext(this, CacheAttrUtil.copy(cacheAttr), invocation, uniqueKey, handlerFlag));
     }
 
-    private static class CacheTask implements Runnable {
+    private class CacheTask implements Runnable {
         private CacheInterceptor interceptor;
         private CacheAttribute cacheAttr;
         private String uniqueKey; // 缓存中的唯一key
@@ -105,33 +112,99 @@ public class CacheInterceptor implements MethodInterceptor, ApplicationContextAw
             if (cacheAttr == null || StringUtil.isEmpty(uniqueKey) || CollectionUtil.isEmpty(types)) {
                 return;
             }
-            for (Integer type : types) {
-                final CacheAttribute targetCacheAttr = CacheAttrUtil.copy(cacheAttr).setType(type);
-                if (type == SedisConst.CACHE_EXPIRE) {
-                    targetCacheAttr.setDataSourceEnable(false); // 不执行数据源删除操作
+            try {
+                for (Integer type : types) {
+                    final CacheAttribute targetCacheAttr = CacheAttrUtil.copy(cacheAttr).setType(type);
+                    if (type == SedisConst.CACHE_EXPIRE) {
+                        targetCacheAttr.setDataSourceEnable(false); // 不执行数据源删除操作
+                    }
+                    final CachePipeline pipeline = interceptor.getPipelines().get(targetCacheAttr);
+                    final MethodInvocation invocation = interceptor.getInvocations().get(targetCacheAttr);
+                    if (invocation != null && type != SedisConst.CACHE_EXPIRE) {
+                        ReflectiveMethodInvocation refInvocation;
+                        if (invocation instanceof ReflectiveMethodInvocation) {
+                            refInvocation = (ReflectiveMethodInvocation) invocation;
+                        } else {
+                            logger.warn("invocation not instanceof ReflectiveMethodInvocation, real type is " + invocation.getClass().getName());
+                            return;
+                        }
+                        if (!transferParam(refInvocation, uniqueKey)) {
+                            return;
+                        }
+                    }
+                    pipeline.handle(new CacheHandlerContext(interceptor, targetCacheAttr, invocation, uniqueKey, CacheAttrUtil.getHandlerFlag(targetCacheAttr)));
                 }
-                final CachePipeline pipeline = interceptor.getPipelines().get(targetCacheAttr);
-                final MethodInvocation invocation = interceptor.getInvocations().get(targetCacheAttr);
-                ReflectiveMethodInvocation refInvocation;
-                if (invocation instanceof ReflectiveMethodInvocation) {
-                    refInvocation = (ReflectiveMethodInvocation) invocation;
-                } else {
-                    logger.warn("invocation not instanceof ReflectiveMethodInvocation, real type is " + invocation.getClass().getName());
-                    return;
-                }
-                Object[] arguments = refInvocation.getArguments();
-                // 更新参数,
-                pipeline.handle(new CacheHandlerContext(interceptor, targetCacheAttr, invocation, uniqueKey, CacheAttrUtil.getHandlerFlag(targetCacheAttr)));
+            } catch (Throwable e) {
+                e.printStackTrace();
             }
         }
+
+        @Override
+        public String toString() {
+            return "CacheTask{" + "cacheAttr=" + cacheAttr + ", uniqueKey='" + uniqueKey + '\'' + ", types=" + JsonUtil.beanToJson(types) + '}';
+        }
+    }
+
+    private CachePipeline getOptimalPipeline(CacheAttribute cacheAttr) {
+        CachePipeline optimalPipeline;
+        // 获取查询注解
+        cacheAttr.setType(SedisConst.CACHE);
+        optimalPipeline = pipelines.get(cacheAttr);
+        if (optimalPipeline != null) {
+            return optimalPipeline;
+        }
+        // 获取更新注解
+        cacheAttr.setType(SedisConst.CACHE_UPDATE);
+        optimalPipeline = pipelines.get(cacheAttr);
+        if (optimalPipeline != null) {
+            return optimalPipeline;
+        }
+        // 获取失效注解
+        cacheAttr.setType(SedisConst.CACHE_EXPIRE);
+        optimalPipeline = pipelines.get(cacheAttr);
+        if (optimalPipeline != null) {
+            return optimalPipeline;
+        }
+        return null;
     }
 
     public void submit(CacheInterceptor interceptor, CacheAttribute cacheAttribute, String key, List<Integer> types) {
         try {
-            executor.submit(new CacheTask(interceptor, cacheAttribute, key, types));
+            final CacheTask task = new CacheTask(interceptor, cacheAttribute, key, types);
+            executor.submit(task);
+            logger.debug("CacheInterceptor.submit CacheTask: " + task);
         } catch (Throwable e) {
             logger.warn("CacheInterceptor.submit error", e);
         }
+    }
+
+    private boolean transferParam(ReflectiveMethodInvocation refInvocation, String uniqueKey) {
+        Object[] arguments = refInvocation.getArguments();
+        String[] newArguments = CacheAttrUtil.params(uniqueKey);
+        if (arguments.length != newArguments.length) {
+            logger.warn("目标参数长度和Invocation的参数长度不一致");
+            return false;
+        }
+        for (int i = 0, len = arguments.length; i < len; i++) {
+            Object argument = arguments[i];
+            if (argument instanceof String) {
+                arguments[i] = newArguments[i];
+            } else if (argument instanceof Integer) {
+                arguments[i] = Integer.parseInt(newArguments[i]);
+            } else if (argument instanceof Long) {
+                arguments[i] = Long.parseLong(newArguments[i]);
+            } else if (argument instanceof Double) {
+                arguments[i] = Double.parseDouble(newArguments[i]);
+            } else if (argument instanceof Float) {
+                arguments[i] = Float.parseFloat(newArguments[i]);
+            } else if (argument instanceof Boolean) {
+                arguments[i] = Boolean.parseBoolean(newArguments[i]);
+            } else {
+                logger.warn("不支持的类型转换");
+                return false;
+            }
+        }
+        return true;
     }
 
     // setter

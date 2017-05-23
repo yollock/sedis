@@ -2,6 +2,7 @@ package com.sedis.cache.spring;
 
 import com.sedis.cache.annotation.Cache;
 import com.sedis.cache.annotation.CacheExpire;
+import com.sedis.cache.annotation.CacheUpdate;
 import com.sedis.cache.common.SedisConst;
 import org.springframework.core.annotation.AnnotationUtils;
 
@@ -22,7 +23,20 @@ public class SpringCacheAnnotationParser implements CacheAnnotationParser {
         if (cacheExpire != null) {
             return parseCacheExpireAnnotation(cacheExpire, SedisConst.CACHE_EXPIRE);
         }
+        CacheUpdate cacheUpdate = AnnotationUtils.getAnnotation(ae, CacheUpdate.class);
+        if (cacheUpdate != null) {
+            return parseCacheUpdateAnnotation(cacheUpdate, SedisConst.CACHE_UPDATE);
+        }
         return null;
+    }
+
+    private CacheAttribute parseCacheUpdateAnnotation(CacheUpdate cacheUpdate, int type) {
+        return new CacheAttribute(cacheUpdate.key(), //
+                type, //
+                cacheUpdate.memoryEnable(), //
+                cacheUpdate.redisEnable(), //
+                cacheUpdate.dataSourceEnable() //
+        );
     }
 
     private CacheAttribute parseCacheExpireAnnotation(CacheExpire cacheExpire, int type) {
