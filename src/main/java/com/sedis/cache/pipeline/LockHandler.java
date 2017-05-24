@@ -22,6 +22,7 @@ public class LockHandler implements CacheHandler {
     public static final long MIN_PERIOD = 5L * 60L * 1000L;
 
     // 减小锁的粒度,同时,对每个key加锁,减少并发量,避免热点key
+    // reduce lock granularity, avoid hot key
     protected final ConcurrentHashMap<String, ExpireLock> locks = new ConcurrentHashMap<String, ExpireLock>();
 
     public ExpireLock getLock(String key) {
@@ -55,8 +56,6 @@ public class LockHandler implements CacheHandler {
         return null;
     }
 
-
-    // 清道夫
     private final ScheduledExecutorService servicer = new ScheduledThreadPoolExecutor(1, new ThreadFactory() {
         @Override
         public Thread newThread(Runnable runnable) {
@@ -96,7 +95,7 @@ public class LockHandler implements CacheHandler {
         if (size < count) {
             return;
         }
-        logger.info("开始执行lock清理,清理前的数量为" + size);
+        logger.info("SedisLockScavenger start, before size is " + size);
         for (Map.Entry<String, ExpireLock> entry : locks.entrySet()) {
             final String key = entry.getKey();
             final ExpireLock lock = entry.getValue();
@@ -105,7 +104,7 @@ public class LockHandler implements CacheHandler {
                 size--;
             }
         }
-        logger.info("结束执行lock清理,清理后的数量为" + size);
+        logger.info("SedisLockScavenger end, after size is " + size);
 
     }
 }

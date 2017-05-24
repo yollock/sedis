@@ -32,12 +32,13 @@ public class RedisCacheHandler implements CacheHandler {
 
     @Override
     public <V> V handle(CacheHandlerContext context) {
+        logger.debug("RedisCacheHandler.handle context: " + context);
         final CacheHandler nextHandler = context.getHandlers().get(NEXT);
         if ((context.getHandlerFlag() & CacheHandlerContext.REDIS_HANDLER) == 0) {
             return nextHandler.handle(context);
         }
         if (sedisClient == null) {
-            logger.warn("Redis访问层有效,但redis客户端对象为null,将从下一层获取数据");
+            logger.warn("redis client is null, get cache from next level");
             return nextHandler.handle(context);
         }
 
@@ -45,7 +46,8 @@ public class RedisCacheHandler implements CacheHandler {
             case SedisConst.CACHE:
                 return cache(context, nextHandler);
             case SedisConst.CACHE_EXPIRE:
-                return cacheExpire(context, nextHandler);
+                cacheExpire(context, nextHandler);
+                return nextHandler.handle(context);
             case SedisConst.CACHE_UPDATE:
                 return nextHandler.handle(context);
             default:
@@ -53,18 +55,18 @@ public class RedisCacheHandler implements CacheHandler {
         }
     }
 
-    private <V> V cacheExpire(CacheHandlerContext context, CacheHandler nextHandler) {
+    private void cacheExpire(CacheHandlerContext context, CacheHandler nextHandler) {
         ShardedJedis jedis = null;
         try {
             jedis = sedisClient.getResource();
             if (jedis == null) {
-                logger.warn("Redis访问层有效, 从redis客户端获取的连接为null, 不会删除redis数据");
-            } else {
-                jedis.del(context.getKey());
-                logger.debug("删除redis缓存数据, key = " + context.getKey());
+                logger.warn("redis connection from redis client is null, will not delete redis cache");
+                return;
             }
+            jedis.del(context.getKey());
+            logger.debug("succeed in deleting redis cache, key = " + context.getKey());
         } catch (Throwable e) {
-            logger.error("RedisCacheHandler.cacheExpire, the context is " + JsonUtil.beanToJson(context), e);
+            logger.error("RedisCacheHandler.cacheExpire, the context is " + context, e);
         } finally {
             try {
                 if (jedis != null) {
@@ -73,7 +75,6 @@ public class RedisCacheHandler implements CacheHandler {
             } catch (Throwable e) {
             }
         }
-        return nextHandler.handle(context);
     }
 
     private <V> V cache(CacheHandlerContext context, CacheHandler nextHandler) {
@@ -83,13 +84,13 @@ public class RedisCacheHandler implements CacheHandler {
         try {
             jedis = sedisClient.getResource();
             if (jedis == null) {
-                logger.warn("Redis访问层有效,从redis客户端获取的连接为null,将从下一层获取数据");
+                logger.warn("redis connection from redis client is null, get cache from next level");
                 return nextHandler.handle(context);
             }
 
             RedisCacheDto rcd = this.getFromRedisAndConvert(jedis, key);
             if (rcd == null || System.currentTimeMillis() > rcd.getEt()) {
-                logger.info("从redis获取的数据,为空或者失效,从下一层获取数据, key = " + key);
+                logger.info("get cache from redis, null or expired, get cache from next level, key is " + key);
                 result = nextHandler.handle(context);
                 if (result == null) {
                     return null;
@@ -104,7 +105,7 @@ public class RedisCacheHandler implements CacheHandler {
             }
             rcd.getHt().incrementAndGet();
             rcd.setVal(null);
-            jedis.set(key, JsonUtil.beanToJson(rcd)); // 更新计数
+            jedis.set(key, JsonUtil.beanToJson(rcd)); // update count
             rcd.setVal(result);
             return (V) rcd.getVal();
         } catch (Throwable e) {
@@ -120,15 +121,8 @@ public class RedisCacheHandler implements CacheHandler {
         }
     }
 
-    /**
-     * 从redis中获取key对应的值，并转换成具体的对象
-     * 1.list直接转换LinkedHashMap,直接返回
-     * 2.array会转换成LinkedHashMap
-     * 3.Map直接转换,直接返回
-     * 4.原生类型,比如String,
-     */
     private <V> RedisCacheDto<V> getFromRedisAndConvert(ShardedJedis jedis, String key) {
-        RedisCacheDto<V> rcd = null;
+        RedisCacheDto<V> rcd;
         try {
             final String rcdJson = jedis.get(key);
             if (rcdJson == null || rcdJson.trim().isEmpty()) {
@@ -156,7 +150,7 @@ public class RedisCacheHandler implements CacheHandler {
             rcd.setVal((V) JsonUtil.jsonToBean(json, javaType));
         } catch (Throwable t) {
             rcd = null;
-            logger.error("RedisCacheHandlerConvertError, the key is " + key, t);
+            logger.error("RedisCacheHandler convert error, the key is " + key, t);
             t.printStackTrace();
         }
         return rcd;

@@ -27,7 +27,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * 执行增强的拦截器,从Advisor调用getAdvice()获取
+ * advice, from Advisor.getAdvice()
  */
 public class CacheInterceptor implements MethodInterceptor, ApplicationContextAware, InitializingBean, Serializable {
 
@@ -37,7 +37,7 @@ public class CacheInterceptor implements MethodInterceptor, ApplicationContextAw
     private ShardedJedisPool sedisClient;
     private CacheAttributeSource cacheAttributeSource;
 
-    // 清道夫属性
+    // Scavenger params
     private int lockCount;
     private long maxPeriod;
     private long delay;
@@ -45,6 +45,7 @@ public class CacheInterceptor implements MethodInterceptor, ApplicationContextAw
     public static ApplicationContext applicationContext;
 
     private final ConcurrentMap<CacheAttribute, CachePipeline> pipelines = new ConcurrentHashMap<CacheAttribute, CachePipeline>();
+    // MethodInvocation is stateful with params, so, call with correct params
     // MethodInvocation有状态,因为参数可能不一样, 所以, 使用时必须使用正确的参数
     private final ConcurrentMap<CacheAttribute, MethodInvocation> invocations = new ConcurrentHashMap<CacheAttribute, MethodInvocation>();
     private final ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 2);
@@ -65,17 +66,20 @@ public class CacheInterceptor implements MethodInterceptor, ApplicationContextAw
     public Object invoke(MethodInvocation invocation) throws Throwable {
         Class<?> targetClass = (invocation.getThis() != null ? AopUtils.getTargetClass(invocation.getThis()) : null);
         final CacheAttribute cacheAttr = this.cacheAttributeSource.getCacheAttribute(invocation.getMethod(), targetClass);
+        // if cache annotation is null, fail fast with invocation.proceed()
         // 如果Cache注解信息为空,直接调用目标方法,返回值
         if (cacheAttr == null) {
             return invocation.proceed();
         }
         // 从CacheAttribute获取需要参与的handler的值,如果不合法,返回 0
+        // if handlerFlag forbidden, fail fast with invocation.proceed()
         int handlerFlag = CacheAttrUtil.getHandlerFlag(cacheAttr);
         if (handlerFlag == CacheHandlerContext.BOTTOM_HANDLER) {
             return invocation.proceed();
         }
 
         // 保存pipeline和invocation
+        // save pipeline and invocation
         CachePipeline pipeline = pipelines.get(cacheAttr);
         if (pipeline == null) {
             pipelines.put(cacheAttr, new DefaultCachePipeline(this));
@@ -83,8 +87,9 @@ public class CacheInterceptor implements MethodInterceptor, ApplicationContextAw
         }
         invocations.putIfAbsent(cacheAttr, invocation);
 
-        // uniqueKey与CacheAttribute的key不一样,
-        // key是模版, uniqueKey则是根据模版key和具体的参数构建而成
+        // uniqueKey与CacheAttribute的key不一样, key是模版, uniqueKey则是根据模版key和具体的参数构建而成
+        // uniqueKey and CacheAttribute.key is different, key is a param model,
+        // uniqueKey created by key and real params from invocation
         String uniqueKey = CacheAttrUtil.getUniqueKey(cacheAttr, invocation);
         return pipeline.handle(new CacheHandlerContext(this, CacheAttrUtil.copy(cacheAttr), invocation, uniqueKey, handlerFlag));
     }
@@ -92,10 +97,10 @@ public class CacheInterceptor implements MethodInterceptor, ApplicationContextAw
     private class CacheTask implements Runnable {
         private CacheInterceptor interceptor;
         private CacheAttribute cacheAttr;
-        private String uniqueKey; // 缓存中的唯一key
-        private List<Integer> types; // CacheAttribute的type集合, 为0则是空, 简单的执行链
+        private String uniqueKey;
+        private List<Integer> types; // CacheAttribute.type list, a simple chain
 
-        public CacheTask(CacheInterceptor interceptor, CacheAttribute cacheAttr, String uniqueKey, List<Integer> types) {
+        CacheTask(CacheInterceptor interceptor, CacheAttribute cacheAttr, String uniqueKey, List<Integer> types) {
             this.interceptor = interceptor;
             this.cacheAttr = cacheAttr;
             this.uniqueKey = uniqueKey;
@@ -106,6 +111,12 @@ public class CacheInterceptor implements MethodInterceptor, ApplicationContextAw
          * 更新缓存, 触发删除和查询::
          * 删除可以执行memory和redis, 但不能执行datasource;
          * 查询都可以执行
+         * --------------------
+         *
+         * @CacheUpdate trigger @CacheExpire and @Cache
+         * at this time,
+         * @CacheExpire can work with MemoryCacheHandler and RedisCacheHandler, but DatasourceHandler
+         * @Cache no limit
          */
         @Override
         public void run() {
@@ -118,7 +129,7 @@ public class CacheInterceptor implements MethodInterceptor, ApplicationContextAw
                     CachePipeline pipeline;
                     MethodInvocation invocation;
                     if (type == SedisConst.CACHE_EXPIRE) {
-                        targetCacheAttr.setDataSourceEnable(false); // 不执行数据源删除操作
+                        targetCacheAttr.setDataSourceEnable(false); // 不执行数据源删除操作, do not delete datasource
                         pipeline = optimalPipeline(CacheAttrUtil.copy(targetCacheAttr));
                         invocation = DefaultMethodInvocation.instance();
                     } else {
@@ -158,19 +169,19 @@ public class CacheInterceptor implements MethodInterceptor, ApplicationContextAw
 
     private CachePipeline optimalPipeline(CacheAttribute cacheAttr) {
         CachePipeline optimalPipeline;
-        // 获取查询注解
+        // @Cache fisrt
         cacheAttr.setType(SedisConst.CACHE);
         optimalPipeline = pipelines.get(cacheAttr);
         if (optimalPipeline != null) {
             return optimalPipeline;
         }
-        // 获取更新注解
+        // @CacheUpdate second
         cacheAttr.setType(SedisConst.CACHE_UPDATE);
         optimalPipeline = pipelines.get(cacheAttr);
         if (optimalPipeline != null) {
             return optimalPipeline;
         }
-        // 获取失效注解
+        // @CacheExpire third
         cacheAttr.setType(SedisConst.CACHE_EXPIRE);
         optimalPipeline = pipelines.get(cacheAttr);
         if (optimalPipeline != null) {

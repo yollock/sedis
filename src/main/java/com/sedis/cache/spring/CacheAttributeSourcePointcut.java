@@ -8,7 +8,7 @@ import java.lang.reflect.Method;
 
 /**
  * 此类负责根据切点表达式,过滤不匹配的Advisor
- * TransactionAttributeSourcePointcut
+ *
  */
 public abstract class CacheAttributeSourcePointcut extends StaticMethodMatcherPointcut implements Serializable {
 

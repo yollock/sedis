@@ -6,7 +6,7 @@ import org.springframework.aop.support.AbstractBeanFactoryPointcutAdvisor;
 
 /**
  * 此类负责为给定的bean获取指定的Advisor(这里是标注了@Cache的类方法),这样就有了给当前bean创建代理对象的机会
- * BeanFactoryTransactionAttributeSourceAdvisor
+ *
  */
 public class BeanFactoryCacheAttributeSourceAdvisor extends AbstractBeanFactoryPointcutAdvisor {
 

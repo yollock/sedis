@@ -25,6 +25,11 @@ public class MemoryCacheHandler implements CacheHandler {
      * 1 获取到当前的缓存,且有效(不为空,且不过期)
      * 2 获取到下一层缓存,不为空,只做更新,然后返回
      * 3 获取到下一层缓存,为空,直接返回null
+     * -------------------------------------------
+     * there are 3 conditions:
+     * 1 get current level cache, and it is effective (not null, not expired)
+     * 2 get next level cache, not null, so update only, then return
+     * 3 get next level cache, null, return null
      *
      * @param context
      * @param <V>
@@ -51,10 +56,11 @@ public class MemoryCacheHandler implements CacheHandler {
     }
 
     private <V> V cache(CacheHandlerContext context, CacheHandler nextHandler) {
+        logger.debug("MemoryCacheHandler.handle context: " + context);
         final String key = context.getKey();
         MemoryCacheDto mcd = cache.get(key);
         if (mcd == null || System.currentTimeMillis() > mcd.getEt()) {
-            logger.info("从memory获取的数据,为空或者失效,从下一层获取数据, key = " + key);
+            logger.info("get cache from memory, null or expired, so get from next level, the key = " + key);
             V result = nextHandler.handle(context);
             if (result == null) {
                 return null;

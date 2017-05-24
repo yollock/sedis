@@ -6,7 +6,7 @@ package com.sedis.cache.spring;
 public class CacheAttribute {
 
     String key;
-    /** 1@Cache, 2@CacheExpire */
+    /** 1@Cache, 2@CacheExpire, 3@CacheUpdate */
     int type;
     boolean memoryEnable;
     long memoryExpiredTime;
@@ -111,6 +111,7 @@ public class CacheAttribute {
 
     /**
      * 尽可能用少的字段做比较, 建议开发人员使用[方法名 + 注解]作为一组(增删改查)缓存的隔离
+     * suggest [mothod name + annocation], not total attributes to equal
      */
     @Override
     public boolean equals(Object o) {
