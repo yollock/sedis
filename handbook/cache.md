@@ -208,7 +208,6 @@ sedis所有的缓存特性，只有两个地方可以设置，一个是spring标
 - `redisEnable`：是否支持redis缓存，true表示支持，false表示不支持，默认false；
 - `dataSourceEnable`：是否需要更新原始数据层，默认为true，表示支持，建议使用默认配置。
 
-> 提醒
 > `@Cache`、`@CacheExpire`、`@CacheUpdate`，这一套注解，`key`和`参数列表`，必须保持一致。参考测试类`WaybillServiceImpl`。
 
 
