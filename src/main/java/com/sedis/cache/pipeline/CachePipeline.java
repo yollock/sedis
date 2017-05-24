@@ -5,6 +5,7 @@ package com.sedis.cache.pipeline;
  */
 public interface CachePipeline {
 
-    public <V> V handle(CacheHandlerContext context);
+    <V> V handle(CacheHandlerContext context);
 
+    void destroy();
 }

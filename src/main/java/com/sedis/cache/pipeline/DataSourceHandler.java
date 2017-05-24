@@ -9,7 +9,7 @@ import org.apache.log4j.Logger;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DataSourceHandler implements CacheHandler {
+public class DataSourceHandler extends AbstractCacheHandler {
 
     private static Logger logger = Logger.getLogger(DataSourceHandler.class);
 

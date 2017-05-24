@@ -1,6 +1,7 @@
 package com.sedis.cache.spring;
 
 import com.sedis.cache.common.SedisConst;
+import com.sedis.cache.exception.CacheException;
 import com.sedis.cache.pipeline.CacheHandlerContext;
 import com.sedis.cache.pipeline.CachePipeline;
 import com.sedis.cache.pipeline.DefaultCachePipeline;
@@ -13,6 +14,7 @@ import org.apache.log4j.Logger;
 import org.springframework.aop.framework.ReflectiveMethodInvocation;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -21,6 +23,7 @@ import redis.clients.jedis.ShardedJedisPool;
 import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
@@ -29,7 +32,7 @@ import java.util.concurrent.Executors;
 /**
  * advice, from Advisor.getAdvice()
  */
-public class CacheInterceptor implements MethodInterceptor, ApplicationContextAware, InitializingBean, Serializable {
+public class CacheInterceptor implements MethodInterceptor, ApplicationContextAware, InitializingBean, DisposableBean, Serializable {
 
     private static Logger logger = Logger.getLogger(CacheInterceptor.class);
 
@@ -51,15 +54,6 @@ public class CacheInterceptor implements MethodInterceptor, ApplicationContextAw
     private final ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 2);
 
     public CacheInterceptor() {
-    }
-
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        CacheInterceptor.applicationContext = applicationContext;
-    }
-
-    @Override
-    public void afterPropertiesSet() throws Exception {
     }
 
     @Override
@@ -249,6 +243,33 @@ public class CacheInterceptor implements MethodInterceptor, ApplicationContextAw
         }
         refInvocation.setArguments(arguments);
         return true;
+    }
+
+    // ioc
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        CacheInterceptor.applicationContext = applicationContext;
+    }
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        final Map<Object, CacheAttribute> cacheAttrMap = ((AnnotationCacheAttributeSource) cacheAttributeSource).getAttributeCache();
+        for (CacheAttribute cacheAttribute : cacheAttrMap.values()) {
+            if (StringUtil.isEmpty(cacheAttribute.getKey())) {
+                continue;
+            }
+            pipelines.put(cacheAttribute, new DefaultCachePipeline(this));
+        }
+    }
+
+    @Override
+    public void destroy() throws Exception {
+        executor.shutdown();
+        for (CachePipeline pipeline : pipelines.values()) {
+            pipeline.destroy();
+        }
+        invocations.clear();
     }
 
     // setter

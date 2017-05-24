@@ -13,6 +13,8 @@ public interface WaybillService {
 
     int updateById(String code);
 
+    int deleteById(String code);
+
     List<Waybill> findListById(String code);
 
     Waybill[] findArrayById(String code);

@@ -7,7 +7,7 @@ import com.sedis.util.SingleLruCache;
 import org.apache.log4j.Logger;
 
 
-public class MemoryCacheHandler implements CacheHandler {
+public class MemoryCacheHandler extends AbstractCacheHandler {
 
     private static Logger logger = Logger.getLogger(MemoryCacheHandler.class);
 
@@ -73,5 +73,11 @@ public class MemoryCacheHandler implements CacheHandler {
         }
         mcd.getHt().incrementAndGet();
         return (V) mcd.getVal();
+    }
+
+    @Override
+    public void destroy() {
+        super.destroy();
+        cache.clear();
     }
 }

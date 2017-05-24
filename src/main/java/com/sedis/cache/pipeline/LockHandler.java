@@ -11,7 +11,7 @@ import java.util.concurrent.locks.Lock;
 /**
  * Created by yollock on 2016/12/14.
  */
-public class LockHandler implements CacheHandler {
+public class LockHandler extends AbstractCacheHandler {
 
     private static Logger logger = Logger.getLogger(LockHandler.class);
 
@@ -105,6 +105,12 @@ public class LockHandler implements CacheHandler {
             }
         }
         logger.info("SedisLockScavenger end, after size is " + size);
+    }
 
+    @Override
+    public void destroy() {
+        super.destroy();
+        servicer.shutdown();
+        locks.clear();
     }
 }

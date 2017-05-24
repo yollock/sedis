@@ -1,5 +1,6 @@
 package com.sedis.test;
 
+import com.sedis.util.JsonUtil;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
@@ -89,10 +90,26 @@ public class SedisCacheTest {
 
         System.out.println("==================================");
 
+
         long s16 = System.currentTimeMillis();
+        Waybill beforeWaybill = service.findById(code);
         System.out.println("updateById, " + service.updateById(code));
+        Waybill afterWaybill = service.findById(code);
+        System.out.println("beforeWaybill.waybillStatus == " + beforeWaybill.getWaybillStatus() //
+                + ", afterWaybill.waybillStatus == " + afterWaybill.getWaybillStatus());
         long e16 = System.currentTimeMillis();
         System.out.println("f16 is " + (e16 - s16));
+
+        System.out.println("==================================");
+
+        long s17 = System.currentTimeMillis();
+        Waybill beforeDeleteWaybill = service.findById(code);
+        System.out.println("updateById, " + service.deleteById(code));
+        Waybill afterDeleteWaybill = service.findById(code);
+        System.out.println("beforeDeleteWaybill.waybillStatus == " + beforeDeleteWaybill.getWaybillStatus() //
+                + ", afterDeleteWaybill.waybillStatus == " + afterDeleteWaybill.getWaybillStatus());
+        long e17 = System.currentTimeMillis();
+        System.out.println("f17 is " + (e17 - s17));
 
         System.out.println("==================================");
     }

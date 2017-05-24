@@ -53,11 +53,11 @@ public class SedisStatService implements StatMBean {
     }
 
     private List<CacheAttribute> cacheAttribute() {
-        final Map<Object, CacheAttribute> cacheAttributeMap = ((AnnotationCacheAttributeSource) cacheInterceptor() //
+        final Map<Object, CacheAttribute> cacheAttrMap = ((AnnotationCacheAttributeSource) cacheInterceptor() //
                 .getCacheAttributeSource()).getAttributeCache();
         Set<CacheAttribute> cacheAttributeSet = new HashSet<CacheAttribute>();
         List<CacheAttribute> cacheAttributes = new ArrayList<CacheAttribute>();
-        for (CacheAttribute cacheAttribute : cacheAttributeMap.values()) {
+        for (CacheAttribute cacheAttribute : cacheAttrMap.values()) {
             if (StringUtil.isEmpty(cacheAttribute.getKey())) {
                 continue;
             }

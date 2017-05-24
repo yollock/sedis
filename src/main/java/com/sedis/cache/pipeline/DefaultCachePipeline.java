@@ -1,6 +1,7 @@
 package com.sedis.cache.pipeline;
 
 import com.sedis.cache.spring.CacheInterceptor;
+import com.sedis.util.CollectionUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,6 +25,16 @@ public class DefaultCachePipeline implements CachePipeline {
         handlers.add(new DataSourceHandler(context.getInvocation()));
         context.setHandlers(handlers);
         return (V) handlers.get(0).handle(context);
+    }
+
+    @Override
+    public void destroy() {
+        if (CollectionUtil.isEmpty(defaultHandlers)) {
+            return;
+        }
+        for (CacheHandler handler : defaultHandlers) {
+            handler.destroy();
+        }
     }
 
 

@@ -10,10 +10,23 @@ import java.util.concurrent.locks.LockSupport;
  * Created by yollock on 2016/9/26.
  */
 public class WaybillServiceImpl implements WaybillService {
+
     @Override
     @Cache(redisEnable = true, key = "waybill@args0")
     public Waybill findById(String code) {
-        return new Waybill(code, 1);
+        return new Waybill(code, new Random().nextInt(1000));
+    }
+
+    @Override
+    @CacheExpire(key = "waybill@args0")
+    public int deleteById(String code) {
+        return 1;
+    }
+
+    @Override
+    @CacheExpire(key = "waybill@args0")
+    public int updateById(String code) {
+        return 1;
     }
 
     @Override
@@ -23,12 +36,6 @@ public class WaybillServiceImpl implements WaybillService {
         waybills.add(new Waybill(code, 1));
         waybills.add(new Waybill(code, 2));
         return waybills;
-    }
-
-    @Override
-    @CacheExpire(key = "waybill@args0")
-    public int updateById(String code) {
-        return 1;
     }
 
     @Override

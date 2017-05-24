@@ -13,7 +13,7 @@ import redis.clients.jedis.ShardedJedisPool;
 import java.util.Collection;
 import java.util.Map;
 
-public class RedisCacheHandler implements CacheHandler {
+public class RedisCacheHandler extends AbstractCacheHandler {
 
     private static Logger logger = Logger.getLogger(RedisCacheHandler.class);
 
