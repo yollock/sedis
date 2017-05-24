@@ -14,12 +14,12 @@ import org.springframework.aop.framework.ReflectiveMethodInvocation;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import redis.clients.jedis.ShardedJedisPool;
 
 import java.io.Serializable;
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -115,12 +115,23 @@ public class CacheInterceptor implements MethodInterceptor, ApplicationContextAw
             try {
                 for (Integer type : types) {
                     final CacheAttribute targetCacheAttr = CacheAttrUtil.copy(cacheAttr).setType(type);
+                    CachePipeline pipeline;
+                    MethodInvocation invocation;
                     if (type == SedisConst.CACHE_EXPIRE) {
                         targetCacheAttr.setDataSourceEnable(false); // 不执行数据源删除操作
+                        pipeline = optimalPipeline(CacheAttrUtil.copy(targetCacheAttr));
+                        invocation = DefaultMethodInvocation.instance();
+                    } else {
+                        pipeline = interceptor.getPipelines().get(targetCacheAttr);
+                        invocation = interceptor.getInvocations().get(targetCacheAttr);
                     }
-                    final CachePipeline pipeline = interceptor.getPipelines().get(targetCacheAttr);
-                    final MethodInvocation invocation = interceptor.getInvocations().get(targetCacheAttr);
-                    if (invocation != null && type != SedisConst.CACHE_EXPIRE) {
+
+                    if (pipeline == null || invocation == null) {
+                        logger.warn("pipeline or invocation is null, CacheTask will not work, CacheAttribute is " + targetCacheAttr);
+                        return;
+                    }
+
+                    if (type != SedisConst.CACHE_EXPIRE) {
                         ReflectiveMethodInvocation refInvocation;
                         if (invocation instanceof ReflectiveMethodInvocation) {
                             refInvocation = (ReflectiveMethodInvocation) invocation;
@@ -145,7 +156,7 @@ public class CacheInterceptor implements MethodInterceptor, ApplicationContextAw
         }
     }
 
-    private CachePipeline getOptimalPipeline(CacheAttribute cacheAttr) {
+    private CachePipeline optimalPipeline(CacheAttribute cacheAttr) {
         CachePipeline optimalPipeline;
         // 获取查询注解
         cacheAttr.setType(SedisConst.CACHE);
@@ -168,6 +179,26 @@ public class CacheInterceptor implements MethodInterceptor, ApplicationContextAw
         return null;
     }
 
+    /**
+     * Default MethodInvocation avoid to delete data when type is CACHE_EXPIRE
+     */
+    private static class DefaultMethodInvocation extends ReflectiveMethodInvocation {
+
+        protected DefaultMethodInvocation(Object proxy, //
+                                          Object target, //
+                                          Method method, //
+                                          Object[] arguments, //
+                                          Class<?> targetClass, //
+                                          List<Object> interceptorsAndDynamicMethodMatchers //
+        ) {
+            super(proxy, target, method, arguments, targetClass, interceptorsAndDynamicMethodMatchers);
+        }
+
+        public static DefaultMethodInvocation instance() {
+            return new DefaultMethodInvocation(null, null, null, null, null, null);
+        }
+    }
+
     public void submit(CacheInterceptor interceptor, CacheAttribute cacheAttribute, String key, List<Integer> types) {
         try {
             final CacheTask task = new CacheTask(interceptor, cacheAttribute, key, types);
@@ -179,31 +210,33 @@ public class CacheInterceptor implements MethodInterceptor, ApplicationContextAw
     }
 
     private boolean transferParam(ReflectiveMethodInvocation refInvocation, String uniqueKey) {
-        Object[] arguments = refInvocation.getArguments();
+        Class[] parameterTypes = refInvocation.getMethod().getParameterTypes();
         String[] newArguments = CacheAttrUtil.params(uniqueKey);
-        if (arguments.length != newArguments.length) {
-            logger.warn("目标参数长度和Invocation的参数长度不一致");
+        if (parameterTypes.length != newArguments.length) {
+            logger.warn("target params length from uniqueKey and invocation params length not equal");
             return false;
         }
-        for (int i = 0, len = arguments.length; i < len; i++) {
-            Object argument = arguments[i];
-            if (argument instanceof String) {
+        Object[] arguments = new Object[parameterTypes.length];
+        for (int i = 0, len = parameterTypes.length; i < len; i++) {
+            final String parameterTypeName = parameterTypes[i].getName();
+            if (String.class.getName().equals(parameterTypeName)) {
                 arguments[i] = newArguments[i];
-            } else if (argument instanceof Integer) {
+            } else if (Integer.class.getName().equals(parameterTypeName)) {
                 arguments[i] = Integer.parseInt(newArguments[i]);
-            } else if (argument instanceof Long) {
+            } else if (Long.class.getName().equals(parameterTypeName)) {
                 arguments[i] = Long.parseLong(newArguments[i]);
-            } else if (argument instanceof Double) {
+            } else if (Double.class.getName().equals(parameterTypeName)) {
                 arguments[i] = Double.parseDouble(newArguments[i]);
-            } else if (argument instanceof Float) {
+            } else if (Float.class.getName().equals(parameterTypeName)) {
                 arguments[i] = Float.parseFloat(newArguments[i]);
-            } else if (argument instanceof Boolean) {
+            } else if (Boolean.class.getName().equals(parameterTypeName)) {
                 arguments[i] = Boolean.parseBoolean(newArguments[i]);
             } else {
-                logger.warn("不支持的类型转换");
+                logger.warn("the " + i + "th parameterType[" + parameterTypeName + "] can not convert, uniqueKey is" + uniqueKey);
                 return false;
             }
         }
+        refInvocation.setArguments(arguments);
         return true;
     }
 

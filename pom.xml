@@ -10,7 +10,7 @@
     <artifactId>sedis</artifactId>
     <version>1.0.0</version>
     <name>sedis</name>
-    <url>http://yollock.com</url>
+    <url>https://github.com/yollock/sedis</url>
     <packaging>jar</packaging>
 
     <properties>

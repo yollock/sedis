@@ -4,8 +4,10 @@ import com.google.common.base.Splitter;
 import com.sedis.cache.keytool.CacheKeyGenerator;
 import com.sedis.cache.keytool.DefaultCacheKeyGenerator;
 import com.sedis.cache.pipeline.CacheHandlerContext;
+import com.sedis.util.CollectionUtil;
 import org.aopalliance.intercept.MethodInvocation;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -53,11 +55,14 @@ public abstract class CacheAttrUtil {
 
     public static String[] params(String uniqueKey) {
         List<String> temp = Splitter.on("@").splitToList(uniqueKey);
+        if (CollectionUtil.isEmpty(temp)) {
+            return new String[0];
+        }
         String[] params = new String[temp.size() - 1];
         boolean isFirst = true;
         for (int i = 0, len = temp.size(); i < len; i++) {
             if (isFirst) {
-                isFirst = true;
+                isFirst = false;
                 continue;
             } else {
                 params[i - 1] = temp.get(i);

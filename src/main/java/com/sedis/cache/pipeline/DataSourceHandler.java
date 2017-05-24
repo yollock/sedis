@@ -9,9 +9,6 @@ import org.apache.log4j.Logger;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- *
- */
 public class DataSourceHandler implements CacheHandler {
 
     private static Logger logger = Logger.getLogger(DataSourceHandler.class);
@@ -32,12 +29,15 @@ public class DataSourceHandler implements CacheHandler {
     @Override
     public <V> V handle(CacheHandlerContext context) {
         logger.debug("DataSourceHandler.handle context: " + context);
+        if ((context.getHandlerFlag() & CacheHandlerContext.DATASOURCE_HANDLER) == 0) {
+            return null;
+        }
         try {
             switch (context.getCacheAttribute().getType()) {
                 case SedisConst.CACHE:
                 case SedisConst.CACHE_EXPIRE:
                     if (invocation == null) {
-                        logger.warn("MethodInvocation is null, context is: " + JsonUtil.beanToJson(context));
+                        logger.info("MethodInvocation is null, context is: " + JsonUtil.beanToJson(context));
                         return null;
                     }
                     return (V) invocation.proceed();
