@@ -126,45 +126,45 @@ public class WaybillServiceImpl implements WaybillService {
 
 ```java
 public class SedisCacheTest {
-	public static void main(String[] args) {
-		String configPath = "classpath:spring-context.xml";
-		ApplicationContext context = new ClassPathXmlApplicationContext(configPath);
-		WaybillService service = (WaybillService) context.getBean("waybillService");
+    public static void main(String[] args) {
+        String configPath = "classpath:spring-context.xml";
+        ApplicationContext context = new ClassPathXmlApplicationContext(configPath);
+        WaybillService service = (WaybillService) context.getBean("waybillService");
 
-		String code = "1";
-		long s13 = System.currentTimeMillis();
-		System.out.println("findById, " + service.findById(code));
-		long e13 = System.currentTimeMillis();
-		System.out.println("f13 is " + (e13 - s13));
-		long s14 = System.currentTimeMillis();
-		System.out.println("findById, " + service.findById(code));
-		long e14 = System.currentTimeMillis();
-		System.out.println("f14 is " + (e14 - s14));
+        String code = "1";
+        long s13 = System.currentTimeMillis();
+        System.out.println("findById, " + service.findById(code));
+        long e13 = System.currentTimeMillis();
+        System.out.println("f13 is " + (e13 - s13));
+        long s14 = System.currentTimeMillis();
+        System.out.println("findById, " + service.findById(code));
+        long e14 = System.currentTimeMillis();
+        System.out.println("f14 is " + (e14 - s14));
 
-		System.out.println("==================================");
+        System.out.println("==================================");
 
-	    long s16 = System.currentTimeMillis();
-	    Waybill beforeWaybill = service.findById(code);
-	    System.out.println("updateById, " + service.updateById(code));
-	    Waybill afterWaybill = service.findById(code);
-	    System.out.println("beforeWaybill.waybillStatus == " + beforeWaybill.getWaybillStatus() //
-	            + ", afterWaybill.waybillStatus == " + afterWaybill.getWaybillStatus());
-	    long e16 = System.currentTimeMillis();
-	    System.out.println("f16 is " + (e16 - s16));
-	
-	    System.out.println("==================================");
-	
-	    long s17 = System.currentTimeMillis();
-	    Waybill beforeDeleteWaybill = service.findById(code);
-	    System.out.println("updateById, " + service.deleteById(code));
-	    Waybill afterDeleteWaybill = service.findById(code);
-	    System.out.println("beforeDeleteWaybill.waybillStatus == " + beforeDeleteWaybill.getWaybillStatus() //
-	            + ", afterDeleteWaybill.waybillStatus == " + afterDeleteWaybill.getWaybillStatus());
-	    long e17 = System.currentTimeMillis();
-	    System.out.println("f17 is " + (e17 - s17));
-	
-	    System.out.println("==================================");
-	}
+        long s16 = System.currentTimeMillis();
+        Waybill beforeWaybill = service.findById(code);
+        System.out.println("updateById, " + service.updateById(code));
+        Waybill afterWaybill = service.findById(code);
+        System.out.println("beforeWaybill.waybillStatus == " + beforeWaybill.getWaybillStatus() //
+                + ", afterWaybill.waybillStatus == " + afterWaybill.getWaybillStatus());
+        long e16 = System.currentTimeMillis();
+        System.out.println("f16 is " + (e16 - s16));
+
+        System.out.println("==================================");
+
+        long s17 = System.currentTimeMillis();
+        Waybill beforeDeleteWaybill = service.findById(code);
+        System.out.println("updateById, " + service.deleteById(code));
+        Waybill afterDeleteWaybill = service.findById(code);
+        System.out.println("beforeDeleteWaybill.waybillStatus == " + beforeDeleteWaybill.getWaybillStatus() //
+                + ", afterDeleteWaybill.waybillStatus == " + afterDeleteWaybill.getWaybillStatus());
+        long e17 = System.currentTimeMillis();
+        System.out.println("f17 is " + (e17 - s17));
+
+        System.out.println("==================================");
+    }
 }
 ```
 
