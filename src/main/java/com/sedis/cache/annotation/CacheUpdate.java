@@ -19,10 +19,10 @@ public @interface CacheUpdate {
     String key() default "";
 
     // 是否支持内存缓存，默认关闭
-    boolean memoryEnable() default true;
+    boolean memoryEnable() default false;
 
     // 是否支持Redis缓存，默认关闭
-    boolean redisEnable() default true;
+    boolean redisEnable() default false;
 
     // 是否支持数据库内存，默认开启
     boolean dataSourceEnable() default true;
