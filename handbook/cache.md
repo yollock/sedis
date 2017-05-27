@@ -29,20 +29,21 @@
 </dependency>
 ```
 
+> 目前jar包，没有上传到maven仓库，需要手动编译，添加到本地仓库。
+
 2. 配置spring-context.xml文件
 
 ```xml
 <!-- 声明sedis标签,表示开启缓存中间件功能 -->
 <sedis:annotation-driven sedis-client="sedisClient"/>
 
-<!-- 声明redis连接池,可以声明多个,组建集群,注入ShardedJedisPool -->
-<bean id="jedisPoolConfig" class="redis.clients.jedis.JedisPoolConfig">
-    <property name="maxIdle" value="10"/>
-    <property name="testOnBorrow" value="true"/>
+<!-- 声明redis客户端的适配器, 适配器也可以适配其他的客户端 -->
+<bean id="sedisClient" class="com.sedis.cache.adapter.redis.JedisClient">
+    <property name="shardedJedisPool" ref="shardedJedisPool"></property>
 </bean>
 
 <!-- 声明redis集群客户端 -->
-<bean id="sedisClient" class="redis.clients.jedis.ShardedJedisPool">
+<bean id="shardedJedisPool" class="redis.clients.jedis.ShardedJedisPool">
     <constructor-arg ref="jedisPoolConfig"/>
     <constructor-arg>
         <list>
@@ -54,6 +55,13 @@
         </list>
     </constructor-arg>
 </bean>
+
+<!-- 声明redis连接池,可以声明多个,组建集群,注入ShardedJedisPool -->
+<bean id="jedisPoolConfig" class="redis.clients.jedis.JedisPoolConfig">
+    <property name="maxIdle" value="10"/>
+    <property name="testOnBorrow" value="true"/>
+</bean>
+
 ```
 
 3. 准备测试类文件

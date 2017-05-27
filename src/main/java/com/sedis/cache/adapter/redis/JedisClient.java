@@ -1,5 +1,6 @@
-package com.sedis.cache.adapter;
+package com.sedis.cache.adapter.redis;
 
+import com.sedis.cache.adapter.ClientAdapter;
 import com.sedis.cache.exception.CacheException;
 import com.sedis.util.LogUtil;
 import org.springframework.beans.factory.InitializingBean;
