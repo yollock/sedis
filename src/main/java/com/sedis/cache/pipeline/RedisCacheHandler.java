@@ -100,14 +100,9 @@ public class RedisCacheHandler extends AbstractCacheHandler {
                 rcd.setJson(JsonUtil.beanToJson(result));
                 parseAndFillValueType(rcd, result);
                 rcd.setEt(System.currentTimeMillis() + context.getCacheAttribute().getRedisExpiredTime());
-            } else {
-                result = (V) rcd.getVal();
+                jedis.set(key, JsonUtil.beanToJson(rcd)); // save json not val
             }
-            rcd.getHt().incrementAndGet();
-            rcd.setVal(null);
-            jedis.set(key, JsonUtil.beanToJson(rcd)); // update count
-            rcd.setVal(result);
-            return (V) rcd.getVal();
+            return result;
         } catch (Throwable e) {
             logger.error("RedisCacheHandler.cache, the context is " + JsonUtil.beanToJson(context), e);
             return result;
