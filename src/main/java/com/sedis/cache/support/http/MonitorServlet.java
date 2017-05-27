@@ -1,6 +1,7 @@
 package com.sedis.cache.support.http;
 
 import com.sedis.cache.stat.SedisStatService;
+import com.sedis.util.LogUtil;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -10,8 +11,6 @@ import javax.servlet.ServletException;
  * Created by yollock on 2017/5/19.
  */
 public class MonitorServlet extends ResourceServlet {
-
-    private final static Log logger = LogFactory.getLog(MonitorServlet.class);
 
     public static final String PARAM_NAME_RESET_ENABLE = "resetEnable";
     private SedisStatService statService = SedisStatService.instance();
@@ -32,7 +31,7 @@ public class MonitorServlet extends ResourceServlet {
             }
         } catch (Exception e) {
             String msg = "initParameter config error, resetEnable : " + getInitParameter(PARAM_NAME_RESET_ENABLE);
-            logger.error(msg, e);
+            LogUtil.error(msg, e);
         }
     }
 

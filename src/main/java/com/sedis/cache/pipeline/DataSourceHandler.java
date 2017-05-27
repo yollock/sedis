@@ -3,15 +3,13 @@ package com.sedis.cache.pipeline;
 import com.sedis.cache.common.SedisConst;
 import com.sedis.cache.spring.CacheInterceptor;
 import com.sedis.util.JsonUtil;
+import com.sedis.util.LogUtil;
 import org.aopalliance.intercept.MethodInvocation;
-import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class DataSourceHandler extends AbstractCacheHandler {
-
-    private static Logger logger = Logger.getLogger(DataSourceHandler.class);
 
     private MethodInvocation invocation;
 
@@ -28,7 +26,7 @@ public class DataSourceHandler extends AbstractCacheHandler {
 
     @Override
     public <V> V handle(CacheHandlerContext context) {
-        logger.debug("DataSourceHandler.handle context: " + context);
+        LogUtil.debug("DataSourceHandler.handle context: " + context);
         if ((context.getHandlerFlag() & CacheHandlerContext.DATASOURCE_HANDLER) == 0) {
             return null;
         }
@@ -37,7 +35,7 @@ public class DataSourceHandler extends AbstractCacheHandler {
                 case SedisConst.CACHE:
                 case SedisConst.CACHE_EXPIRE:
                     if (invocation == null) {
-                        logger.info("MethodInvocation is null, context is: " + JsonUtil.beanToJson(context));
+                        LogUtil.info("MethodInvocation is null, context is: " + JsonUtil.beanToJson(context));
                         return null;
                     }
                     return (V) invocation.proceed();
@@ -50,7 +48,7 @@ public class DataSourceHandler extends AbstractCacheHandler {
                     return null;
             }
         } catch (Throwable e) {
-            logger.error("DataSourceHandlerError, the context is " + JsonUtil.beanToJson(context), e);
+            LogUtil.error("DataSourceHandlerError, the context is " + JsonUtil.beanToJson(context), e);
         }
         return null;
     }
@@ -58,7 +56,7 @@ public class DataSourceHandler extends AbstractCacheHandler {
     private void submitTask(CacheHandlerContext context) {
         final CacheInterceptor interceptor = context.getInterceptor();
         if (interceptor == null) {
-            logger.warn("CacheInterceptor is null, will not submit a CacheTask: " + JsonUtil.beanToJson(context));
+            LogUtil.warn("CacheInterceptor is null, will not submit a CacheTask: " + JsonUtil.beanToJson(context));
             return;
         }
 

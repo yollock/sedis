@@ -1,18 +1,15 @@
 package com.sedis.cache.keytool;
 
-import org.apache.log4j.Logger;
+import com.sedis.util.LogUtil;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.text.MessageFormat;
 import java.util.Arrays;
 
 /**
  * Created by yollock on 2016/9/25.
  */
 public class DefaultCacheKeyGenerator implements CacheKeyGenerator {
-
-    private static Logger logger = Logger.getLogger(DefaultCacheKeyGenerator.class);
 
     @Override
     public String generateKey(Method method, Object[] args, Object target, String key) {
@@ -31,7 +28,7 @@ public class DefaultCacheKeyGenerator implements CacheKeyGenerator {
             try {
                 implMethod = target.getClass().getMethod(interfaceMethod.getName(), interfaceMethod.getParameterTypes());
             } catch (NoSuchMethodException e) {
-                logger.error("DefaultCacheKeyGeneratorError, interfaceMethod is " + interfaceMethod == null ? "null" : interfaceMethod.getName(), e);
+                LogUtil.error("DefaultCacheKeyGeneratorError, interfaceMethod is " + interfaceMethod == null ? "null" : interfaceMethod.getName(), e);
             }
         }
         Method methodForKey = (implMethod != null ? implMethod : interfaceMethod);

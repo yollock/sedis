@@ -1,16 +1,16 @@
 package com.sedis.cache.spring;
 
+import com.sedis.cache.adapter.ClientAdapter;
 import com.sedis.cache.common.SedisConst;
-import com.sedis.cache.exception.CacheException;
 import com.sedis.cache.pipeline.CacheHandlerContext;
 import com.sedis.cache.pipeline.CachePipeline;
 import com.sedis.cache.pipeline.DefaultCachePipeline;
 import com.sedis.util.CollectionUtil;
 import com.sedis.util.JsonUtil;
+import com.sedis.util.LogUtil;
 import com.sedis.util.StringUtil;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
-import org.apache.log4j.Logger;
 import org.springframework.aop.framework.ReflectiveMethodInvocation;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
@@ -18,7 +18,6 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import redis.clients.jedis.ShardedJedisPool;
 
 import java.io.Serializable;
 import java.lang.reflect.Method;
@@ -34,10 +33,8 @@ import java.util.concurrent.Executors;
  */
 public class CacheInterceptor implements MethodInterceptor, ApplicationContextAware, InitializingBean, DisposableBean, Serializable {
 
-    private static Logger logger = Logger.getLogger(CacheInterceptor.class);
-
     private int memoryCount;
-    private ShardedJedisPool sedisClient;
+    private ClientAdapter sedisClient;
     private CacheAttributeSource cacheAttributeSource;
 
     // Scavenger params
@@ -132,7 +129,7 @@ public class CacheInterceptor implements MethodInterceptor, ApplicationContextAw
                     }
 
                     if (pipeline == null || invocation == null) {
-                        logger.warn("pipeline or invocation is null, CacheTask will not work, CacheAttribute is " + targetCacheAttr);
+                        LogUtil.warn("pipeline or invocation is null, CacheTask will not work, CacheAttribute is " + targetCacheAttr);
                         return;
                     }
 
@@ -141,7 +138,7 @@ public class CacheInterceptor implements MethodInterceptor, ApplicationContextAw
                         if (invocation instanceof ReflectiveMethodInvocation) {
                             refInvocation = (ReflectiveMethodInvocation) invocation;
                         } else {
-                            logger.warn("invocation not instanceof ReflectiveMethodInvocation, real type is " + invocation.getClass().getName());
+                            LogUtil.warn("invocation not instanceof ReflectiveMethodInvocation, real type is " + invocation.getClass().getName());
                             return;
                         }
                         if (!transferParam(refInvocation, uniqueKey)) {
@@ -151,7 +148,7 @@ public class CacheInterceptor implements MethodInterceptor, ApplicationContextAw
                     pipeline.handle(new CacheHandlerContext(interceptor, targetCacheAttr, invocation, uniqueKey, CacheAttrUtil.getHandlerFlag(targetCacheAttr)));
                 }
             } catch (Throwable e) {
-                e.printStackTrace();
+                LogUtil.warn("CacheTask error", e);
             }
         }
 
@@ -208,9 +205,9 @@ public class CacheInterceptor implements MethodInterceptor, ApplicationContextAw
         try {
             final CacheTask task = new CacheTask(interceptor, cacheAttribute, key, types);
             executor.submit(task);
-            logger.debug("CacheInterceptor.submit CacheTask: " + task);
+            LogUtil.debug("CacheInterceptor.submit CacheTask: " + task);
         } catch (Throwable e) {
-            logger.warn("CacheInterceptor.submit error", e);
+            LogUtil.warn("CacheInterceptor.submit error", e);
         }
     }
 
@@ -218,7 +215,7 @@ public class CacheInterceptor implements MethodInterceptor, ApplicationContextAw
         Class[] parameterTypes = refInvocation.getMethod().getParameterTypes();
         String[] newArguments = CacheAttrUtil.params(uniqueKey);
         if (parameterTypes.length != newArguments.length) {
-            logger.warn("target params length from uniqueKey and invocation params length not equal");
+            LogUtil.warn("target params length from uniqueKey and invocation params length not equal");
             return false;
         }
         Object[] arguments = new Object[parameterTypes.length];
@@ -237,7 +234,7 @@ public class CacheInterceptor implements MethodInterceptor, ApplicationContextAw
             } else if (Boolean.class.getName().equals(parameterTypeName)) {
                 arguments[i] = Boolean.parseBoolean(newArguments[i]);
             } else {
-                logger.warn("the " + i + "th parameterType[" + parameterTypeName + "] can not convert, uniqueKey is" + uniqueKey);
+                LogUtil.warn("the " + i + "th parameterType[" + parameterTypeName + "] can not convert, uniqueKey is" + uniqueKey);
                 return false;
             }
         }
@@ -274,7 +271,7 @@ public class CacheInterceptor implements MethodInterceptor, ApplicationContextAw
 
     // setter
 
-    public void setSedisClient(ShardedJedisPool sedisClient) {
+    public void setSedisClient(ClientAdapter sedisClient) {
         this.sedisClient = sedisClient;
     }
 
@@ -310,7 +307,7 @@ public class CacheInterceptor implements MethodInterceptor, ApplicationContextAw
         return invocations;
     }
 
-    public ShardedJedisPool getSedisClient() {
+    public ClientAdapter getSedisClient() {
         return sedisClient;
     }
 

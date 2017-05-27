@@ -8,8 +8,6 @@ import org.apache.commons.logging.LogFactory;
  */
 public abstract class StringUtil {
 
-    private final static Log logger = LogFactory.getLog(StringUtil.class);
-
     public static boolean isEmpty(CharSequence value) {
         if (value == null || value.length() == 0) {
             return true;
@@ -78,7 +76,7 @@ public abstract class StringUtil {
         try {
             return Integer.parseInt(in);
         } catch (NumberFormatException e) {
-            logger.warn("stringToInteger fail,string=" + in, e);
+            LogUtil.warn("stringToInteger fail,string=" + in, e);
             return null;
         }
     }

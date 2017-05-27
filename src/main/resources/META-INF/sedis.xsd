@@ -19,11 +19,11 @@
         <xsd:complexType>
             <xsd:attribute name="sedis-client" type="xsd:string" default="">
                 <xsd:annotation>
-                    <xsd:documentation source="java:redis.clients.jedis.ShardedJedisPool">
+                    <xsd:documentation source="java:com.sedis.cache.adapter.ClientAdapter">
                         <![CDATA[ redis客户端实现类 ]]></xsd:documentation>
                     <xsd:appinfo>
                         <tool:annotation kind="ref">
-                            <tool:expected-type type="redis.clients.jedis.ShardedJedisPool"/>
+                            <tool:expected-type type="com.sedis.cache.adapter.ClientAdapter"/>
                         </tool:annotation>
                     </xsd:appinfo>
                 </xsd:annotation>

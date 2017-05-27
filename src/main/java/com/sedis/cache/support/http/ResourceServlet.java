@@ -2,8 +2,6 @@ package com.sedis.cache.support.http;
 
 import com.sedis.util.ResourceUtil;
 import com.sedis.util.StringUtil;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -17,8 +15,6 @@ import java.io.IOException;
  * 参考alibaba.druid的监控实现, 感谢开源
  */
 public abstract class ResourceServlet extends HttpServlet {
-
-    private final static Log logger = LogFactory.getLog(ResourceServlet.class);
 
     public static final String SESSION_USER_KEY = "sedis-user";
     public static final String PARAM_NAME_USERNAME = "loginUsername";

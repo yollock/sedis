@@ -3,13 +3,11 @@ package com.sedis.cache.pipeline;
 import com.sedis.cache.common.SedisConst;
 import com.sedis.cache.domain.MemoryCacheDto;
 import com.sedis.cache.spring.CacheInterceptor;
+import com.sedis.util.LogUtil;
 import com.sedis.util.SingleLruCache;
-import org.apache.log4j.Logger;
 
 
 public class MemoryCacheHandler extends AbstractCacheHandler {
-
-    private static Logger logger = Logger.getLogger(MemoryCacheHandler.class);
 
     private static final int NEXT = 2;
 
@@ -56,11 +54,11 @@ public class MemoryCacheHandler extends AbstractCacheHandler {
     }
 
     private <V> V cache(CacheHandlerContext context, CacheHandler nextHandler) {
-        logger.debug("MemoryCacheHandler.handle context: " + context);
+        LogUtil.debug("MemoryCacheHandler.handle context: " + context);
         final String key = context.getKey();
         MemoryCacheDto mcd = cache.get(key);
         if (mcd == null || System.currentTimeMillis() > mcd.getEt()) {
-            logger.info("get cache from memory, null or expired, so get from next level, the key = " + key);
+            LogUtil.info("get cache from memory, null or expired, so get from next level, the key = " + key);
             V result = nextHandler.handle(context);
             if (result == null) {
                 return null;

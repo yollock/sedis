@@ -1,5 +1,6 @@
 package com.sedis.cache.spring;
 
+import com.sedis.util.LogUtil;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.core.BridgeMethodResolver;
@@ -15,8 +16,6 @@ import java.util.concurrent.ConcurrentHashMap;
  * Created by yollock on 2016/9/12.
  */
 public abstract class AbstractFallbackCacheAttributeSource implements CacheAttributeSource {
-
-    protected final Log logger = LogFactory.getLog(getClass());
 
     private final static CacheAttribute NULL_CACHE_ATTRIBUTE = new CacheAttribute();
 
@@ -41,8 +40,8 @@ public abstract class AbstractFallbackCacheAttributeSource implements CacheAttri
             if (txAtt == null) {
                 this.attributeCache.put(cacheKey, NULL_CACHE_ATTRIBUTE);
             } else {
-                if (logger.isDebugEnabled()) {
-                    logger.debug("Adding cache method '" + method.getName() + "' with attribute: " + txAtt);
+                if (LogUtil.isDebugEnabled()) {
+                    LogUtil.debug("Adding cache method '" + method.getName() + "' with attribute: " + txAtt);
                 }
                 this.attributeCache.put(cacheKey, txAtt);
             }

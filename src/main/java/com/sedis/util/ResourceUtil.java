@@ -18,8 +18,6 @@ import java.io.UnsupportedEncodingException;
  */
 public abstract class ResourceUtil {
 
-    private final static Log logger = LogFactory.getLog(ResourceUtil.class);
-
     public final static int DEFAULT_BUFFER_SIZE = 1024 * 4;
 
     public static String read(InputStream in) {
@@ -131,7 +129,7 @@ public abstract class ResourceUtil {
         try {
             x.close();
         } catch (Exception e) {
-            logger.debug("close error", e);
+            LogUtil.debug("close error", e);
         }
     }
 

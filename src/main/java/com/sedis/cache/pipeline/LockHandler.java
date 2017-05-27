@@ -1,8 +1,8 @@
 package com.sedis.cache.pipeline;
 
 import com.sedis.cache.spring.CacheInterceptor;
+import com.sedis.util.LogUtil;
 import com.sedis.util.locks.ExpireLock;
-import org.apache.log4j.Logger;
 
 import java.util.Map;
 import java.util.concurrent.*;
@@ -12,8 +12,6 @@ import java.util.concurrent.locks.Lock;
  * Created by yollock on 2016/12/14.
  */
 public class LockHandler extends AbstractCacheHandler {
-
-    private static Logger logger = Logger.getLogger(LockHandler.class);
 
     private static final int NEXT = 1;
 
@@ -49,7 +47,7 @@ public class LockHandler extends AbstractCacheHandler {
             lock.lock();
             return context.getHandlers().get(NEXT).handle(context);
         } catch (Throwable t) {
-            logger.warn("LockHandler error", t);
+            LogUtil.warn("LockHandler error", t);
         } finally {
             lock.unlock();
         }
@@ -95,7 +93,7 @@ public class LockHandler extends AbstractCacheHandler {
         if (size < count) {
             return;
         }
-        logger.info("SedisLockScavenger start, before size is " + size);
+        LogUtil.info("SedisLockScavenger start, before size is " + size);
         for (Map.Entry<String, ExpireLock> entry : locks.entrySet()) {
             final String key = entry.getKey();
             final ExpireLock lock = entry.getValue();
@@ -104,7 +102,7 @@ public class LockHandler extends AbstractCacheHandler {
                 size--;
             }
         }
-        logger.info("SedisLockScavenger end, after size is " + size);
+        LogUtil.info("SedisLockScavenger end, after size is " + size);
     }
 
     @Override
