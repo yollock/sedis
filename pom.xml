@@ -15,7 +15,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <org.springframework.version>4.1.0.RELEASE</org.springframework.version>
+        <org.springframework.version>4.3.9.RELEASE</org.springframework.version>
         <javax.servlet.version>3.1.0</javax.servlet.version>
         <redis.clients.version>2.6.1</redis.clients.version>
         <jackson.version>1.9.13</jackson.version>
